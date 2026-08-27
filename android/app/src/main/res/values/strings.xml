@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">إسلاميات</string>
+    <string name="title_activity_main">إسلاميات</string>
+    <string name="package_name">com.deeni.app</string>
+    <string name="custom_url_scheme">com.deeni.app</string>
+</resources>
