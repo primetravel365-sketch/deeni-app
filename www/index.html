@@ -288,6 +288,14 @@
   .reciter-list{ max-height:260px; overflow-y:auto; margin-bottom:16px; }
   .reciter-item{ display:flex; align-items:center; gap:12px; padding:10px 6px; border-bottom:1px solid var(--line); cursor:pointer; border-radius:12px; }
   .reciter-item.sel{ background:var(--green-tint); }
+  .surah-item.sel{ background:var(--green-tint); border-radius:12px; }
+  .player-options{ display:flex; }
+  .option-btn{ background:var(--card); border:1px solid var(--line); color:var(--text-dim); padding:6px 14px; border-radius:20px; font-size:12px; cursor:pointer; font-family:'Tajawal',sans-serif; transition:all .2s; }
+  .option-btn.active, .option-btn:hover{ background:var(--gold); color:#fff; border-color:var(--gold); }
+  .mushaf-tafsir-popover{ position:absolute; left:10px; right:10px; bottom:14px; max-height:45%; overflow-y:auto; background:var(--card); border:1px solid var(--gold); border-radius:var(--radius, 16px); box-shadow:0 8px 24px rgba(0,0,0,0.25); z-index:20; }
+  .mushaf-tafsir-head{ display:flex; justify-content:space-between; align-items:center; padding:10px 14px; border-bottom:1px solid var(--line); font-weight:700; color:var(--green-deep); font-size:13px; position:sticky; top:0; background:var(--card); }
+  .mushaf-tafsir-close{ cursor:pointer; color:var(--text-dim); padding:2px 6px; }
+  .mushaf-tafsir-body{ padding:12px 14px; font-size:13px; line-height:1.9; color:var(--text); }
   .reciter-avatar{ width:36px; height:36px; border-radius:50%; background:var(--card); border:1px solid var(--gold); display:flex; align-items:center; justify-content:center; font-size:14px; flex-shrink:0; }
   .reciter-name{ flex:1; font-family:'Cairo',sans-serif; font-weight:600; font-size:13px; color:var(--text); }
   .reciter-check{ color:var(--green); font-size:14px; opacity:0; }
@@ -371,6 +379,9 @@
   .dua-cat-chevron{ color:var(--gold-soft); font-size:13px; flex-shrink:0; }
   .dua-item-title{ font-family:'Cairo',sans-serif; font-weight:700; font-size:12.5px; color:var(--green); margin-bottom:6px; }
   .scholar-card{ display:flex; align-items:center; gap:12px; background:var(--card); border:1px solid var(--line); border-radius:18px; padding:12px 14px; margin-bottom:10px; box-shadow:0 2px 8px rgba(46,46,46,0.03); cursor:pointer;}
+  .video-lib-card{ background:var(--card); border:1px solid var(--line); border-radius:18px; padding:10px; margin:0 16px 14px; box-shadow:0 2px 8px rgba(46,46,46,0.03); }
+  .video-lib-player{ width:100%; border-radius:12px; background:#000; display:block; max-height:220px; }
+  .video-lib-title{ margin-top:8px; font-family:'Cairo',sans-serif; font-weight:700; font-size:13px; color:var(--text); text-align:center; }
   .scholar-chevron{ color:var(--gold-soft); font-size:16px; flex-shrink:0; }
   .video-embed-wrap{ position:relative; width:100%; aspect-ratio:16/9; border-radius:16px; overflow:hidden; background:#000; margin-bottom:14px; border:1px solid var(--line); }
   .video-embed-wrap iframe{ position:absolute; inset:0; width:100%; height:100%; border:none; }
@@ -420,8 +431,35 @@
   .qibla-wrap{ display:flex; flex-direction:column; align-items:center; padding-top:14px;}
   .compass{ width:210px; height:210px; border-radius:50%; border:1px solid var(--line); background:radial-gradient(circle at 50% 40%, var(--green-tint), var(--card) 75%); position:relative; display:flex; align-items:center; justify-content:center; margin-bottom:20px; box-shadow:0 4px 20px rgba(46,46,46,0.06), inset 0 0 0 1px rgba(200,169,90,0.15);}
   .compass::before{ content:''; position:absolute; inset:14px; border-radius:50%; border:1px dashed rgba(200,169,90,0.5);}
-  .kaaba{ width:32px; height:32px; background:#1c1c1c; border:2px solid var(--gold); border-radius:4px; position:absolute; top:16px; left:50%; transform:translateX(-50%); display:flex; align-items:center; justify-content:center; font-size:13px;}
-  .needle{ width:2px; height:78px; background:linear-gradient(var(--gold), transparent); position:absolute; bottom:50%; left:50%; transform-origin:bottom center; transform:translateX(-50%) rotate(28deg);}
+  .compass-tick{ position:absolute; font-size:10px; font-weight:700; color:var(--text-dim); font-family:'Cairo',sans-serif; }
+  .compass-tick.n{ top:6px; left:50%; transform:translateX(-50%); color:var(--gold); }
+  .compass-tick.s{ bottom:6px; left:50%; transform:translateX(-50%); }
+  .compass-tick.e{ top:50%; right:6px; transform:translateY(-50%); }
+  .compass-tick.w{ top:50%; left:6px; transform:translateY(-50%); }
+  .compass-pointer{ position:absolute; inset:0; transform-origin:center center; transition:transform .18s ease-out; will-change:transform; }
+  .kaaba{ width:34px; height:34px; position:absolute; top:12px; left:50%; transform:translateX(-50%); filter:drop-shadow(0 2px 6px rgba(200,169,90,0.45)); }
+  .needle{ width:3px; height:82px; background:linear-gradient(var(--gold), transparent); position:absolute; bottom:50%; left:50%; transform-origin:bottom center; transform:translateX(-50%); border-radius:2px;}
+  .compass-center-dot{ width:8px; height:8px; border-radius:50%; background:var(--gold); position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); box-shadow:0 0 0 3px var(--card);}
+  .qibla-permission-btn{ margin-top:10px; padding:8px 18px; border-radius:20px; border:1px solid var(--gold); background:transparent; color:var(--gold); font-family:'Cairo',sans-serif; font-weight:700; font-size:12px; cursor:pointer;}
+  /* ================= تقويم رمضان القابل للطباعة ================= */
+  .ramadan-print-actions{ display:flex; align-items:center; justify-content:space-between; gap:10px; margin:10px 16px 14px; }
+  .ramadan-sheet{ background:#fffaf0; color:#2a1a08; margin:0 16px 24px; border-radius:14px; padding:22px 18px; border:3px double #c8a95a; box-shadow:0 4px 20px rgba(0,0,0,0.08); }
+  .ramadan-sheet-head{ text-align:center; margin-bottom:16px; display:flex; align-items:center; justify-content:center; gap:12px; }
+  .ramadan-sheet-head h2{ font-family:'Cairo',sans-serif; font-size:20px; color:#7a4f10; margin:0 6px; }
+  .ramadan-sheet-orn{ color:#c8a95a; font-size:20px; }
+  .ramadan-sheet-sub{ font-family:'Cairo',sans-serif; font-size:12px; color:#7a4f10; display:block; width:100%; margin-top:2px; }
+  .ramadan-table{ width:100%; border-collapse:collapse; font-family:'Cairo',sans-serif; font-size:12px; }
+  .ramadan-table th{ background:#c8a95a; color:#fff; padding:6px 4px; font-size:11px; }
+  .ramadan-table td{ border:1px solid #e3cf9c; padding:6px 4px; text-align:center; }
+  .ramadan-table td.rm-day{ font-weight:800; color:#7a4f10; }
+  .ramadan-table tr.rm-friday td{ background:#fbf1da; }
+  .ramadan-sheet-foot{ margin-top:14px; font-size:10px; color:#8a7550; text-align:center; line-height:1.8; }
+  @media print{
+    body *{ visibility:hidden; }
+    .ramadan-sheet, .ramadan-sheet *{ visibility:visible; }
+    .ramadan-sheet{ position:absolute; top:0; left:0; right:0; margin:0; box-shadow:none; }
+    .no-print{ display:none !important; }
+  }
   .qibla-deg{ font-family:'Cairo',sans-serif; font-size:28px; font-weight:800; color:var(--green); margin-bottom:4px;}
   .qibla-note{ font-size:12px; color:var(--text-dim); text-align:center; line-height:1.8; max-width:260px;}
 
@@ -967,14 +1005,19 @@
           <div class="mushaf-nav-btn" id="mushaf-next-btn" tabindex="0" role="button" onclick="mushafNextPage()">التالية ›</div>
         </div>
 
-        <div class="surah-audio-bar" id="mushaf-audio-bar" style="display:none;">
+        <div class="surah-audio-bar" id="mushaf-audio-bar" style="display:none; flex-wrap:wrap;">
           <div class="surah-audio-reciter" id="mushaf-audio-reciter">—</div>
           <div class="surah-audio-controls">
-            <span class="surah-audio-btn" tabindex="0" role="button" aria-label="الآية السابقة" onclick="surahAudioPrevAyah()">⏮</span>
-            <span class="surah-audio-btn play" id="mushaf-audio-playbtn" tabindex="0" role="button" aria-label="تشغيل/إيقاف" onclick="toggleSurahAudio()">⏸</span>
-            <span class="surah-audio-btn" tabindex="0" role="button" aria-label="الآية التالية" onclick="surahAudioNextAyah()">⏭</span>
+            <span class="surah-audio-btn" id="mushaf-audio-prevbtn" tabindex="0" role="button" aria-label="السابق" onclick="mushafAudioPrevUnified()">⏮</span>
+            <span class="surah-audio-btn play" id="mushaf-audio-playbtn" tabindex="0" role="button" aria-label="تشغيل/إيقاف" onclick="toggleMushafAudioUnified()">⏸</span>
+            <span class="surah-audio-btn" id="mushaf-audio-nextbtn" tabindex="0" role="button" aria-label="التالي" onclick="mushafAudioNextUnified()">⏭</span>
           </div>
           <div class="surah-audio-progress" id="mushaf-audio-progress">—</div>
+          <div class="player-options" id="mushaf-audiolib-options" style="display:none; width:100%; justify-content:center; gap:10px; margin-top:8px;">
+            <button type="button" class="option-btn" id="audiolib-repeat-btn" onclick="toggleAudioLibWholeRepeat(this)">🔁 تكرار</button>
+            <button type="button" class="option-btn" id="audiolib-autonext-btn" onclick="toggleAudioLibWholeAutoNext(this)">⏭️ تلقائي</button>
+            <button type="button" class="option-btn" onclick="downloadAudioLibWholeSurah()">⬇️ تحميل</button>
+          </div>
         </div>
 
         <div class="perm-lang-sheet-wrap" id="mushaf-index-wrap" aria-hidden="true">
@@ -1030,13 +1073,17 @@
       <!-- ================= المكتبة السمعية — قوائم القراء (بيانات حقيقية حية من mp3quran.net) ================= -->
       <div class="screen" id="audio-library">
         <div class="top-row">
-          <div class="back-btn" tabindex="0" role="button" aria-label="رجوع" onclick="activate('library')">→</div>
+          <div class="back-btn" tabindex="0" role="button" aria-label="رجوع" onclick="resetAudioLibSelection(); activate('library')">→</div>
           <h1 class="title">المكتبة السمعية</h1>
           <div class="gear-btn" tabindex="0" role="button" aria-label="الإعدادات" onclick="goSettings()">⚙️</div>
         </div>
-        <div class="lib-detail-sub">اختر قارئ لتسمع سوره كاملة — بيانات حية من مصدر خارجي حقيقي (mp3quran.net)</div>
+        <div class="lib-detail-sub">اختر الشيخ والسورة (بأي ترتيب) وهيتفتح المصحف بالصوت تلقائيًا</div>
+        <div class="section-label" style="margin-top:4px;">🎙️ الشيخ<span id="audiolib-reciter-picked" style="color:var(--green); font-weight:700;"></span></div>
         <div class="surah-search">🔍 <input type="text" id="audiolib-reciter-search" placeholder="ابحث عن قارئ..." oninput="renderAudioLibReciters(this.value)"></div>
-        <div id="audiolib-reciter-list"></div>
+        <div id="audiolib-reciter-list" style="max-height:24vh; overflow-y:auto;"></div>
+        <div class="section-label">📖 السورة<span id="audiolib-surah-picked" style="color:var(--green); font-weight:700;"></span></div>
+        <div class="surah-search">🔍 <input type="text" id="audiolib-surah-search2" placeholder="ابحث عن سورة..." oninput="renderAudioLibSurahsInline(this.value)"></div>
+        <div id="audiolib-surah-list2" style="max-height:24vh; overflow-y:auto; padding-bottom:24px;"></div>
       </div>
 
       <!-- ================= المكتبة السمعية — سور القارئ المختار ================= -->
@@ -1058,25 +1105,14 @@
         </div>
       </div>
 
-      <!-- ================= المكتبة المرئية — روابط خارجية حقيقية موثّقة (Wikimedia Commons) =================
-           WebFetch مش قادرة تدخل على دومين wikimedia.org عشان نستخرج رابط الفيديو المباشر ونتحقق منه بنفسنا،
-           فبدل ما نخمّن رابط تضمين وهيفشل بصمت، بنودّي المستخدم لصفحة الملف الرسمية نفسها على Commons (نفس
-           أسلوب "مصدر رسمي خارجي" المستخدم أصلًا مع الشيوخ). كل رابط هنا اتأكد وجوده الفعلي بالبحث المباشر
-           (مش تخمين) — لكن معنى "التحقق" هنا هو التأكد من وجود صفحة الملف نفسها على commons.wikimedia.org،
-           مش تشغيل الفيديو فعليًا جوه التطبيق. Pixabay وPexels مستبعدين مؤقتًا لأنهم بيطلبوا مفتاح API شخصي
-           بالتسجيل مش متاح من غير ما حضرتك تسجّله بنفسك. Internet Archive رجّع نتائج غامضة (إحالات لفيديوهات
-           يوتيوب/فيسبوك مش ملفات أصلية) فمستبعد كمان مؤقتًا. ================= -->
+      <!-- ================= المكتبة المرئية — فيديوهات حقيقية مستضافة على مشروع Supabase الخاص بالتطبيق ================= -->
       <div class="screen" id="video-library">
         <div class="top-row">
           <div class="back-btn" tabindex="0" role="button" aria-label="رجوع" onclick="activate('library')">→</div>
           <h1 class="title">المكتبة المرئية</h1>
           <div class="gear-btn" tabindex="0" role="button" aria-label="الإعدادات" onclick="goSettings()">⚙️</div>
         </div>
-        <div class="lib-detail-sub">فيديوهات إسلامية حقيقية حرة الترخيص من Wikimedia Commons — هتفتح في متصفحك</div>
-        <div class="official-source-card">
-          <div class="official-source-icon">🕌</div>
-          <div class="official-source-text">المحتوى ده من Wikimedia Commons (أرشيف وسائط حر ومفتوح تابع لويكيبيديا). مش هيتشغّل داخل التطبيق مباشرة — هيفتح صفحة الملف الرسمية في متصفحك عشان نضمن إننا مش بنخمّن رابط تشغيل غلط.</div>
-        </div>
+        <div class="lib-detail-sub">فيديوهات إسلامية — تتشغّل مباشرة جوه التطبيق</div>
         <div id="video-lib-list"></div>
       </div>
 
@@ -1137,6 +1173,12 @@
 
         <div class="cal-grid" id="cal-grid"></div>
 
+        <div class="cal-calc-card" style="margin-bottom:14px;">
+          <div class="cal-calc-title">🌙 تقويم رمضان ١٤٤٨ هـ (٢٠٢٧)</div>
+          <div class="cal-calc-sub">كل أيام رمضان بالتاريخ الميلادي المقابل، جاهز للتحميل والطباعة (A4 / A3)</div>
+          <div class="cal-calc-btn" tabindex="0" role="button" onclick="openRamadanCalendar()">فتح التقويم ›</div>
+        </div>
+
         <div class="cal-calc-card">
           <div class="cal-calc-title">🧮 حاسبة التقويم</div>
           <div class="cal-calc-sub">حوّل أي تاريخ بين الميلادي والهجري بدقة (حساب أم القرى) — اختر الاتجاه وأدخل التاريخ</div>
@@ -1157,6 +1199,32 @@
         </div>
       </div>
 
+      <!-- ================= تقويم رمضان ١٤٤٨ — للطباعة ================= -->
+      <div class="screen" id="ramadan-calendar">
+        <div class="top-row no-print">
+          <div class="back-btn" tabindex="0" role="button" aria-label="رجوع" onclick="goTab('calendar')">→</div>
+          <h1 class="title">تقويم رمضان ١٤٤٨ هـ</h1>
+          <div class="gear-btn" tabindex="0" role="button" aria-label="طباعة" onclick="printRamadanCalendar()">🖨️</div>
+        </div>
+        <div class="ramadan-print-actions no-print">
+          <div class="cal-dir-row">
+            <div class="cal-dir-chip sel" tabindex="0" role="button" id="ramadan-size-a4" onclick="setRamadanPrintSize('A4', this)">A4</div>
+            <div class="cal-dir-chip" tabindex="0" role="button" id="ramadan-size-a3" onclick="setRamadanPrintSize('A3', this)">A3</div>
+          </div>
+          <div class="cal-calc-btn" tabindex="0" role="button" onclick="printRamadanCalendar()">🖨️ تحميل / طباعة</div>
+        </div>
+        <div class="ramadan-sheet" id="ramadan-sheet">
+          <div class="ramadan-sheet-head">
+            <div class="ramadan-sheet-orn">۞</div>
+            <h2>تقويم شهر رمضان المبارك</h2>
+            <div class="ramadan-sheet-sub" id="ramadan-hijri-year-label">١٤٤٨ هـ — ٢٠٢٧ م</div>
+            <div class="ramadan-sheet-orn">۞</div>
+          </div>
+          <table class="ramadan-table" id="ramadan-table"></table>
+          <div class="ramadan-sheet-foot">تقويم "إسلاميات" — حساب هجري (أم القرى) — التاريخ الفعلي لبداية رمضان يتوقف على رؤية الهلال ويُعلَن رسميًا من الجهات المختصة</div>
+        </div>
+      </div>
+
       <!-- ================= QIBLA ================= -->
       <div class="screen" id="qibla">
         <div class="top-row">
@@ -1165,9 +1233,28 @@
           <div class="gear-btn" tabindex="0" role="button" aria-label="الإعدادات" onclick="goSettings()">⚙️</div>
         </div>
         <div class="qibla-wrap">
-          <div class="compass"><div class="needle"></div><div class="kaaba">🕋</div></div>
+          <div class="compass">
+            <div class="compass-tick n">N</div>
+            <div class="compass-tick s">S</div>
+            <div class="compass-tick e">E</div>
+            <div class="compass-tick w">W</div>
+            <div class="compass-pointer" id="qibla-pointer">
+              <div class="needle"></div>
+              <div class="kaaba">
+                <svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+                  <rect x="6" y="12" width="28" height="24" rx="2" fill="#161616" stroke="var(--gold)" stroke-width="1.6"/>
+                  <rect x="6" y="12" width="28" height="7" fill="var(--gold)" opacity="0.92"/>
+                  <path d="M6 19 L34 19" stroke="#161616" stroke-width="0.8"/>
+                  <rect x="17" y="24" width="6" height="12" fill="var(--gold)" opacity="0.8"/>
+                  <path d="M6 12 L20 4 L34 12 Z" fill="#161616" stroke="var(--gold)" stroke-width="1.4" stroke-linejoin="round"/>
+                </svg>
+              </div>
+            </div>
+            <div class="compass-center-dot"></div>
+          </div>
           <div class="qibla-deg" id="qibla-deg">٢٦٠°</div>
           <div class="qibla-note" id="qibla-note">وجّه هاتفك نحو الأعلى وحرّكه ببطء حتى تستقر الكعبة في أعلى البوصلة</div>
+          <button type="button" class="qibla-permission-btn" id="qibla-compass-btn" style="display:none;" onclick="enableQiblaCompass()">🧭 تفعيل البوصلة الحية</button>
         </div>
         <div class="card" style="margin-top:24px;">
           <div style="font-size:12px; color:var(--text-dim); line-height:1.9;">📍 المسافة إلى مكة المكرمة: <b style="color:var(--green)" id="qibla-distance">١,٥٢٧ كم</b></div>
@@ -1289,7 +1376,10 @@
           <div class="back-btn" tabindex="0" role="button" aria-label="رجوع" onclick="stopAzanPreview(); activate('prayers')">→</div>
           <h1 class="title" id="azan-picker-title">طريقة الأذان</h1>
         </div>
-        <div class="lib-detail-sub">اختر صوت المؤذن اللي هيتلى بيه أذان الصلاة دي تحديدًا — دوس ▶ عشان تسمع عينة حقيقية من صوته الأول</div>
+        <div class="lib-detail-sub" id="azan-picker-sub">اختر صوت المؤذن اللي هيتلى بيه أذان الصلاة دي تحديدًا — دوس ▶ عشان تسمع عينة حقيقية من صوته الأول</div>
+        <div class="notice" style="margin:0 16px 12px; padding:10px 14px; font-size:11px; background:rgba(200,169,90,0.1); border:1px solid rgba(200,169,90,0.35); border-radius:10px; color:var(--text-dim);">
+          ⚠️ ملحوظة صادقة: الاختيار هنا حاليًا بيغيّر <b>صوت المعاينة</b> اللي بتسمعه بالضغط على ▶ بس. صوت التنبيه الفعلي وقت الأذان نفسه لسه موحّد لكل الصلوات حاليًا (مش مربوط بالمؤذن اللي هتختاره هنا) — عشان نربطهم ببعض فعليًا محتاجين نضيف ملفات صوت حقيقية لكل مؤذن في مشروع الأندرويد نفسه.
+        </div>
         <div class="reciter-list" style="max-height:none;" id="azan-muezzin-list"></div>
       </div>
 
@@ -1463,22 +1553,33 @@
     document.getElementById('quran-read-panel').style.display = mode === 'read' ? 'block' : 'none';
     document.getElementById('quran-listen-panel').style.display = mode === 'listen' ? 'block' : 'none';
     renderSurahs();
-    if(mode === 'listen') renderReciters();
+    if(mode === 'listen'){
+      renderReciters();
+      // نجيب قائمة القراء الحية الكاملة من mp3quran.net في الخلفية (لو لسه ما اتجابتش) ونحدّث القائمة
+      // لما توصل، عشان "استماع" يبقى فيها نفس تغطية القراء اللي في "المكتبة السمعية" مش ٢١ اسم بس.
+      loadAudioLibVoices().then(() => renderReciters());
+    }
   }
-  const reciters = [
-    'الشيخ مشاري بن راشد العفاسي', 'الشيخ عبد الباسط عبد الصمد', 'الشيخ عبد الرحمن السديس',
-    'الشيخ سعود الشريم', 'الشيخ محمود خليل الحصري', 'الشيخ محمد صديق المنشاوي',
-    'الشيخ ماهر المعيقلي', 'الشيخ ياسر الدوسري', 'الشيخ أحمد العجمي', 'الشيخ محمد أيوب',
-    'الشيخ علي عبد الرحمن الحذيفي', 'الشيخ خالد الجليل', 'الشيخ ناصر القطامي',
-    'الشيخ إدريس أبكر', 'الشيخ هاني الرفاعي', 'الشيخ محمد المحيسني',
-    'الشيخ سعد الغامدي', 'الشيخ عبدالله بصفر', 'الشيخ أيمن سويد',
-    'الشيخ محمد جبريل', 'الشيخ إبراهيم الأخضر'
-  ];
-  let selectedReciter = reciters[0];
+  // القراء المحفوظين بأسلوب "آية بآية" الدقيق (RECITER_AUDIO_FOLDERS) بيتعرضوا الأول بنفس أسمائهم القديمة —
+  // وبعدين بنضيف أي قارئ تاني موجود فعليًا على mp3quran.net ومش من ضمن القائمة دي، عشان محدش يفضل من غير صوت.
+  function getListenReciterNames(){
+    const curated = Object.keys(RECITER_AUDIO_FOLDERS);
+    const names = curated.slice();
+    if(audioLibVoices){
+      const curatedMp3qNames = new Set(Object.keys(AUDIOLIB_CURATED_MATCH));
+      audioLibVoices.forEach(v => {
+        if(!curatedMp3qNames.has(v.reciterName) && !names.includes(v.reciterName)) names.push(v.reciterName);
+      });
+    }
+    return names;
+  }
+  let selectedReciter = 'الشيخ مشاري بن راشد العفاسي';
   function renderReciters(filter){
     const q = (filter || document.getElementById('reciter-search')?.value || '').trim();
-    const list = q ? reciters.filter(r => r.includes(q)) : reciters;
+    const all = getListenReciterNames();
+    const list = q ? all.filter(r => r.includes(q)) : all;
     const el = document.getElementById('reciter-list');
+    if(!el) return;
     el.innerHTML = list.map(r => `
       <div class="reciter-item ${r===selectedReciter?'sel':''}" tabindex="0" role="button" onclick="selectReciter('${r.replace(/'/g,"\\'")}')">
         <div class="reciter-avatar">🎙️</div>
@@ -1627,29 +1728,66 @@
   }
   let surahAudioState = null; // {folder, surahNum, ayahCount, idx, audioEl, playing}
   function pad3(n){ n = Math.floor(n); return n < 10 ? '00'+n : (n < 100 ? '0'+n : ''+n); }
-  function listenSurahNote(surahNumber){
-    const entry = RECITER_AUDIO_FOLDERS[selectedReciter];
-    if(!entry){
-      showToast(`الصوت لسه مش متاح لـ"${selectedReciter}" تحديدًا — جرّب تختار قارئ تاني من القائمة 🙏`);
-      return;
-    }
-    let folder = entry[selectedRecitationStyle];
-    if(!folder){
-      // مفيش تسجيل بالأسلوب المطلوب تحديدًا لهذا القارئ — بنستخدم أقرب أسلوب متاح ليه بدل ما نمنعه من الاستماع خالص
-      const fallbackStyle = entry.murattal ? 'murattal' : Object.keys(entry)[0];
-      folder = entry[fallbackStyle];
-      showToast(`"${selectedReciter}" معندوش تسجيل بأسلوب ${RECITATION_STYLE_LABELS[selectedRecitationStyle] || selectedRecitationStyle} تحديدًا — هيتشغّل بأسلوب ${RECITATION_STYLE_LABELS[fallbackStyle] || fallbackStyle} بدل منه 🎙️`);
-    }
+  // نبحث عن مصدر صوت للقارئ المختار بأي طريقة متاحة، بدل ما نمنع الاستماع خالص:
+  // ١) لو القارئ من القائمة الدقيقة (آية بآية) — نستخدمها زي ما هي (أفضل تجربة، تقليب صفحة مضبوط بالظبط).
+  // ٢) غير كده، لو موجود على mp3quran.net (سواء كان اسمه في القائمة الدقيقة الأصلية أو قارئ إضافي جديد) —
+  //    نشغّل ملف السورة كاملة من هناك بدل ما نوقف الاستماع.
+  async function listenSurahNote(surahNumber){
     const meta = surahs.find(s => s[0] === surahNumber);
     if(!meta) return;
-    openSurahAudio(surahNumber, meta, folder);
+    const entry = RECITER_AUDIO_FOLDERS[selectedReciter];
+    if(entry){
+      let folder = entry[selectedRecitationStyle];
+      if(!folder){
+        const fallbackStyle = entry.murattal ? 'murattal' : Object.keys(entry)[0];
+        folder = entry[fallbackStyle];
+        showToast(`"${selectedReciter}" معندوش تسجيل بأسلوب ${RECITATION_STYLE_LABELS[selectedRecitationStyle] || selectedRecitationStyle} تحديدًا — هيتشغّل بأسلوب ${RECITATION_STYLE_LABELS[fallbackStyle] || fallbackStyle} بدل منه 🎙️`);
+      }
+      openSurahAudio(surahNumber, meta, folder);
+      return;
+    }
+    // مفيش تسجيل آية بآية لهذا القارئ — ندوّر عليه في قائمة mp3quran.net الحية (تحمّل تلقائيًا لو لسه ما جتش)
+    showLoadingIndicator('جاري البحث عن صوت القارئ… 0%');
+    const voices = await loadAudioLibVoices();
+    const reciterObj = voices ? voices.find(v => v.reciterName === selectedReciter) : null;
+    if(!reciterObj){
+      hideLoadingIndicator();
+      showToast(`تعذّر إيجاد صوت لـ"${selectedReciter}" حاليًا — جرّب تختار قارئ تاني من القائمة 🙏`);
+      return;
+    }
+    if(reciterObj.surahSet && !reciterObj.surahSet.has(surahNumber)){
+      hideLoadingIndicator();
+      showToast(`"${selectedReciter}" مش متسجّل له سورة ${meta[1]} — جرّب تختار سورة تانية 🙏`);
+      return;
+    }
+    hideLoadingIndicator();
+    await openAudioLibWholeSurahPlayback(reciterObj, surahNumber, meta);
+  }
+  // شريط تحميل بنسبة مئوية بيظهر بدل رسالة "الصوت مش متاح" وقت التحميل العادي —
+  // الرسالة القديمة كانت بتظهر أحيانًا أثناء التحميل الطبيعي وتوهم المستخدم إن القارئ عطلان.
+  function showLoadingIndicator(text){
+    const prog = document.getElementById('mushaf-audio-progress');
+    const bar = document.getElementById('mushaf-audio-bar');
+    if(bar) bar.style.display = 'flex';
+    if(prog) prog.textContent = text;
+  }
+  function hideLoadingIndicator(){ /* بيتكتب فوقها بعد كده لما التشغيل يبدأ فعليًا */ }
+  function wireAudioLoadingProgress(audioEl, labelPrefix){
+    audioEl.addEventListener('loadstart', () => showLoadingIndicator(`${labelPrefix} 0%`));
+    audioEl.addEventListener('progress', () => {
+      if(!audioEl.duration || !isFinite(audioEl.duration) || audioEl.buffered.length === 0) return;
+      const pct = Math.min(100, Math.round((audioEl.buffered.end(audioEl.buffered.length - 1) / audioEl.duration) * 100));
+      if(!audioEl.currentTime) showLoadingIndicator(`${labelPrefix} ${pct}%`);
+    });
   }
   async function openSurahAudio(surahNumber, meta, folder){
     stopSurahAudio();
     surahAudioState = {folder, surahNum: surahNumber, ayahCount: meta[2], idx: 1, audioEl: new Audio(), playing: false};
     surahAudioState.audioEl.addEventListener('ended', surahAudioNextAyah);
+    wireAudioLoadingProgress(surahAudioState.audioEl, 'جاري تحميل الآية…');
     surahAudioState.audioEl.addEventListener('error', () => {
-      showToast('الصوت لهذه الآية مش متاح دلوقتي — تأكد من الاتصال بالإنترنت 📡');
+      // بدل ما نوقف الاستماع بالكامل، نحاول نلاقي بديل كامل السورة من mp3quran.net لنفس القارئ (لو متاح) قبل ما نستسلم
+      attemptWholeSurahFallbackAfterAyahError(surahNumber, meta);
     });
     document.getElementById('mushaf-header-title').textContent = `سورة ${meta[1]}`;
     // بند ٢: الاستماع بيفتح عرض المصحف كصفحات (مش النص المتصل القديم) — الصفحة هتتقلّب تلقائيًا لما التلاوة تعدي لصفحة جديدة
@@ -1660,9 +1798,24 @@
     if(reciterEl) reciterEl.textContent = `🎙️ ${selectedReciter}`;
     playCurrentAyah();
   }
+  let ayahErrorFallbackTried = false;
+  async function attemptWholeSurahFallbackAfterAyahError(surahNumber, meta){
+    if(ayahErrorFallbackTried){ showToast('الصوت لهذه الآية مش متاح دلوقتي — تأكد من الاتصال بالإنترنت 📡'); return; }
+    ayahErrorFallbackTried = true;
+    const voices = await loadAudioLibVoices();
+    const reverseName = Object.keys(AUDIOLIB_CURATED_MATCH).find(k => AUDIOLIB_CURATED_MATCH[k] === selectedReciter);
+    const reciterObj = voices ? voices.find(v => v.reciterName === (reverseName || selectedReciter)) : null;
+    if(reciterObj && (!reciterObj.surahSet || reciterObj.surahSet.has(surahNumber))){
+      showToast('التسجيل الدقيق آية بآية معندوش هذه الآية — هنشغّل السورة كاملة بدل منها 🎙️');
+      await openAudioLibWholeSurahPlayback(reciterObj, surahNumber, meta);
+    } else {
+      showToast('الصوت لهذه الآية مش متاح دلوقتي — تأكد من الاتصال بالإنترنت 📡');
+    }
+  }
   function playCurrentAyah(){
     const st = surahAudioState;
     if(!st) return;
+    ayahErrorFallbackTried = false;
     st.audioEl.src = `https://everyayah.com/data/${st.folder}/${pad3(st.surahNum)}${pad3(st.idx)}.mp3`;
     st.audioEl.play().catch(()=>{});
     st.playing = true;
@@ -1848,7 +2001,7 @@
       }
       if(prevHizbQuarter !== null && a.hizbQuarter !== prevHizbQuarter) html += hizbMarkHtml(a.hizbQuarter);
       prevHizbQuarter = a.hizbQuarter;
-      html += `<span class="mushaf-ayah" data-surah="${surahNum}" data-ayah="${a.numberInSurah}">${stripBakedBismillah(a.text, surahNum, a.numberInSurah)}<span class="mushaf-ayah-num">${toArabicDigits(a.numberInSurah)}</span></span> `;
+      html += `<span class="mushaf-ayah" data-surah="${surahNum}" data-ayah="${a.numberInSurah}" tabindex="0" role="button" aria-label="عرض تفسير الآية" onclick="showAyahTafsir(${surahNum}, ${a.numberInSurah})">${stripBakedBismillah(a.text, surahNum, a.numberInSurah)}<span class="mushaf-ayah-num">${toArabicDigits(a.numberInSurah)}</span></span> `;
     });
     return `<div class="mushaf-text">${html}</div>`;
   }
@@ -1897,9 +2050,44 @@
       return false;
     }
   }
+  // ================= تفسير الآية عند الضغط على أي آية أو كلمة جواها (تفسير الميسّر عبر alquran.cloud) =================
+  async function showAyahTafsir(surahNum, ayahNum){
+    closeAyahTafsir();
+    const frame = document.getElementById('mushaf-page-frame');
+    if(!frame) return;
+    const meta = surahs.find(s => s[0] === surahNum);
+    const pop = document.createElement('div');
+    pop.className = 'mushaf-tafsir-popover';
+    pop.id = 'mushaf-tafsir-popover';
+    pop.innerHTML = `<div class="mushaf-tafsir-head"><span>تفسير الآية ${toArabicDigits(ayahNum)}${meta ? ' — سورة ' + meta[1] : ''}</span><span class="mushaf-tafsir-close" tabindex="0" role="button" aria-label="إغلاق" onclick="closeAyahTafsir()">✕</span></div><div class="mushaf-tafsir-body">جاري تحميل التفسير…</div>`;
+    frame.appendChild(pop);
+    try{
+      const res = await fetch(`https://api.alquran.cloud/v1/ayah/${surahNum}:${ayahNum}/ar.muyassar`);
+      if(!res.ok) throw new Error('http-error');
+      const data = await res.json();
+      const text = data && data.data && data.data.text ? data.data.text : null;
+      const body = pop.querySelector('.mushaf-tafsir-body');
+      if(body) body.textContent = text || 'التفسير مش متاح لهذه الآية دلوقتي.';
+    }catch(err){
+      const body = pop.querySelector('.mushaf-tafsir-body');
+      if(body) body.textContent = 'مش قادرين نجيب التفسير دلوقتي — تأكد من الاتصال بالإنترنت 📡';
+    }
+  }
+  function closeAyahTafsir(){
+    const el = document.getElementById('mushaf-tafsir-popover');
+    if(el) el.remove();
+  }
   function mushafNextPage(){ if(currentMushafPage && currentMushafPage < 604) openMushafPage(currentMushafPage + 1); }
   function mushafPrevPage(){ if(currentMushafPage && currentMushafPage > 1) openMushafPage(currentMushafPage - 1); }
-  function closeMushafReader(){ stopSurahAudio(); activate('quran'); }
+  function closeMushafReader(){
+    stopSurahAudio();
+    stopAudioLibWholePlayback();
+    closeAyahTafsir();
+    resetAudioLibSelection();
+    const target = mushafReturnScreen || 'quran';
+    mushafReturnScreen = 'quran';
+    activate(target);
+  }
   function highlightMushafAyah(surahNum, ayahNum){
     document.querySelectorAll('.mushaf-ayah.active').forEach(el => el.classList.remove('active'));
     const target = document.querySelector(`.mushaf-ayah[data-surah="${surahNum}"][data-ayah="${ayahNum}"]`);
@@ -2053,7 +2241,7 @@
   // بدل navigator.geolocation القياسية، لأنه هو اللي بيقدر يطلب صلاحية الموقع فعليًا من نظام أندرويد
   // (navigator.geolocation العادية ممكن متطلبش صلاحية بشكل صحيح جوه الـ WebView المضمّن في التطبيق).
   async function useMyLocation(){
-    showToast('بنحدد موقعك الحالي…');
+    showToast('بنحدد موقعك الحالي (GPS)…');
     const nativeGeo = (window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform() && window.Capacitor.Plugins && window.Capacitor.Plugins.Geolocation) ? window.Capacitor.Plugins.Geolocation : null;
     try{
       let coords;
@@ -2061,27 +2249,52 @@
         const perm = await nativeGeo.requestPermissions();
         const granted = perm && (perm.location === 'granted' || perm.coarseLocation === 'granted');
         if(!granted){
-          showToast('تأكد من السماح بصلاحية الموقع لضبط المواقيت 📍');
+          showToast('محتاجين إذن الموقع عشان نحسب مواقيت الصلاة والقبلة بدقة من مكانك — فعّله من إعدادات التطبيق ⚙️📍');
           return;
         }
-        const pos = await nativeGeo.getCurrentPosition({enableHighAccuracy:false, timeout:12000});
-        coords = {lat: pos.coords.latitude, lon: pos.coords.longitude};
+        // enableHighAccuracy:true عشان يستخدم شريحة GPS الحقيقية في الجهاز (مش تقدير تقريبي من الشبكة/الواي فاي) —
+        // ده أدق لكن ممكن ياخد وقت أطول أول مرة (خصوصًا لو تحت سقف أو الإشارة ضعيفة)، فزوّدنا المهلة كمان.
+        try{
+          const pos = await nativeGeo.getCurrentPosition({enableHighAccuracy:true, timeout:20000, maximumAge:0});
+          coords = {lat: pos.coords.latitude, lon: pos.coords.longitude};
+        }catch(gpsErr){
+          // لو GPS الدقيق فشل (مفيش إشارة قوية كفاية)، نجرب تقدير أسرع (شبكة/واي فاي) بدل ما نفشل تمامًا
+          showToast('إشارة GPS ضعيفة — بنجرب تحديد تقريبي أسرع…');
+          const pos = await nativeGeo.getCurrentPosition({enableHighAccuracy:false, timeout:15000, maximumAge:60000});
+          coords = {lat: pos.coords.latitude, lon: pos.coords.longitude};
+        }
       } else if(navigator.geolocation){
-        coords = await new Promise((resolve, reject) => {
-          navigator.geolocation.getCurrentPosition(
-            pos => resolve({lat: pos.coords.latitude, lon: pos.coords.longitude}),
-            reject,
-            {enableHighAccuracy:false, timeout:12000, maximumAge:600000}
-          );
-        });
+        try{
+          coords = await new Promise((resolve, reject) => {
+            navigator.geolocation.getCurrentPosition(
+              pos => resolve({lat: pos.coords.latitude, lon: pos.coords.longitude}),
+              reject,
+              {enableHighAccuracy:true, timeout:20000, maximumAge:0}
+            );
+          });
+        }catch(gpsErr){
+          showToast('إشارة GPS ضعيفة — بنجرب تحديد تقريبي أسرع…');
+          coords = await new Promise((resolve, reject) => {
+            navigator.geolocation.getCurrentPosition(
+              pos => resolve({lat: pos.coords.latitude, lon: pos.coords.longitude}),
+              reject,
+              {enableHighAccuracy:false, timeout:15000, maximumAge:600000}
+            );
+          });
+        }
       } else {
-        showToast('المتصفح ده مش بيدعم تحديد الموقع 📡');
+        showToast('الجهاز/المتصفح ده مش بيدعم تحديد الموقع خالص 📡');
         return;
       }
       userCoords = coords;
+      showToast('تم تحديد موقعك بنجاح ✓');
       reverseGeocodeAndFetchTimes();
     }catch(err){
-      showToast('تأكد من السماح بصلاحية الموقع لضبط المواقيت 📍');
+      // بنفرّق بين الأسباب الشائعة عشان الرسالة تبقى مفيدة فعلًا مش عامة
+      const code = err && (err.code || (err.message && /denied/i.test(err.message) ? 1 : (err.message && /timeout/i.test(err.message) ? 3 : 0)));
+      if(code === 1) showToast('صلاحية الموقع مرفوضة — فعّلها من إعدادات الموبايل لهذا التطبيق ⚙️📍');
+      else if(code === 3) showToast('استغرق تحديد GPS وقت طويل من غير رد — جرّب في مكان مفتوح بعيد عن الأسقف/الحوائط السميكة 📡');
+      else showToast('تعذّر تحديد موقعك دلوقتي — تأكد إن خدمة الموقع (GPS) مفعّلة في إعدادات الجهاز 📍');
     }
   }
   async function reverseGeocodeAndFetchTimes(){
@@ -2092,7 +2305,14 @@
         const geo = await geoRes.json();
         // الإمارة/المحافظة (زي "أبوظبي") + المكان الدقيق (مدينة/منطقة زي "ليوا" أو "منطقة الظفرة") — لو مختلفين بيتعرضوا مع بعض
         const province = geo.principalSubdivision || null;
-        const place = geo.city || geo.locality || null;
+        // لو city/locality رجعوا فاضيين (بيحصل في بعض المناطق)، ندوّر على أدق مستوى إداري متاح
+        // في localityInfo.administrative بدل ما نرجع فورًا لاسم الدولة/الإمارة بس.
+        let adminFallback = null;
+        if(Array.isArray(geo.localityInfo?.administrative) && geo.localityInfo.administrative.length){
+          const sorted = geo.localityInfo.administrative.slice().sort((a,b) => (b.order||0) - (a.order||0));
+          adminFallback = sorted[0]?.name || null;
+        }
+        const place = geo.city || geo.locality || adminFallback || null;
         let cityName;
         if(province && place && place !== province) cityName = `${province} - ${place}`;
         else cityName = place || province || null;
@@ -2153,6 +2373,9 @@
     const a = Math.sin(dφ/2)**2 + Math.cos(φ1)*Math.cos(φ2)*Math.sin(dλ/2)**2;
     return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
   }
+  let qiblaBearingDeg = null;   // اتجاه القبلة الحقيقي بالنسبة للشمال (من GPS) — ثابت طول ما موقع المستخدم ثابت
+  let deviceHeadingDeg = 0;     // الاتجاه اللي الموبايل موجّه له دلوقتي بالنسبة للشمال (من الكمباس الحي)
+  let qiblaCompassActive = false;
   function updateQiblaUI(){
     const degEl = document.getElementById('qibla-deg');
     const distEl = document.getElementById('qibla-distance');
@@ -2162,11 +2385,61 @@
       subEl && (subEl.textContent = 'الاتجاه والمسافة دلوقتي تقديريين (أبوظبي) — دوس هنا لحساب اتجاه القبلة الدقيق من موقعك الفعلي');
       return;
     }
-    const bearing = qiblaBearing(userCoords.lat, userCoords.lon, KAABA_LAT, KAABA_LON);
+    qiblaBearingDeg = qiblaBearing(userCoords.lat, userCoords.lon, KAABA_LAT, KAABA_LON);
     const distKm = haversineKm(userCoords.lat, userCoords.lon, KAABA_LAT, KAABA_LON);
-    degEl.textContent = `${toArabicDigits(Math.round(bearing))}°`;
+    degEl.textContent = `${toArabicDigits(Math.round(qiblaBearingDeg))}°`;
     distEl.textContent = `${toArabicDigits(Math.round(distKm).toLocaleString('en-US'))} كم`;
     if(subEl) subEl.textContent = 'الاتجاه والمسافة محسوبين من موقعك الفعلي (GPS) ✓';
+    applyQiblaPointerRotation();
+    maybeShowQiblaCompassButton();
+  }
+  // بتدوّر السهم/الكعبة جوه البوصلة فعليًا — سواء البوصلة الحية شغالة (بتاخد في الاعتبار اتجاه الموبايل الفعلي)
+  // أو لسه مستنية تفعيل (بترجّع للزاوية الثابتة بالنسبة للشمال بس، وده اللي كان بيحصل قبل كده كتابة رقم بس من غير ما يتحرك السهم).
+  function applyQiblaPointerRotation(){
+    const pointer = document.getElementById('qibla-pointer');
+    if(!pointer || qiblaBearingDeg === null) return;
+    const relative = qiblaCompassActive ? (qiblaBearingDeg - deviceHeadingDeg + 360) % 360 : qiblaBearingDeg;
+    pointer.style.transform = `rotate(${relative}deg)`;
+  }
+  function maybeShowQiblaCompassButton(){
+    const btn = document.getElementById('qibla-compass-btn');
+    if(!btn || qiblaCompassActive) return;
+    // في آيفون (iOS 13+) لازم نطلب إذن صريح بلمسة زرار عشان نقدر نقرأ حساس البوصلة — في أندرويد الحدث بيشتغل من غير إذن
+    btn.style.display = 'inline-block';
+  }
+  async function enableQiblaCompass(){
+    const btn = document.getElementById('qibla-compass-btn');
+    try{
+      if(typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function'){
+        const perm = await DeviceOrientationEvent.requestPermission();
+        if(perm !== 'granted'){
+          showToast('محتاجين إذن الحساسات عشان نفعّل البوصلة الحية — تقدر تفعّله من إعدادات الموبايل ⚙️');
+          return;
+        }
+      }
+      window.addEventListener('deviceorientationabsolute', handleQiblaOrientation, true);
+      window.addEventListener('deviceorientation', handleQiblaOrientation, true);
+      qiblaCompassActive = true;
+      if(btn) btn.style.display = 'none';
+      const noteEl = document.getElementById('qibla-note');
+      if(noteEl) noteEl.textContent = 'البوصلة الحية شغالة — لف بموبايلك حتى تستقر الكعبة فوق البوصلة تمامًا 🧭';
+      showToast('تم تفعيل البوصلة الحية ✓');
+    }catch(err){
+      showToast('تعذّر تفعيل حساس البوصلة على هذا الجهاز 🙏');
+    }
+  }
+  function handleQiblaOrientation(e){
+    let heading = null;
+    if(typeof e.webkitCompassHeading === 'number'){
+      heading = e.webkitCompassHeading; // آيفون: بيدّي زاوية شمال حقيقي جاهزة
+    } else if(e.absolute === true && typeof e.alpha === 'number'){
+      heading = (360 - e.alpha) % 360; // أندرويد (اتجاه مطلق): alpha بيزيد عكس اتجاه البوصلة العادي
+    } else if(typeof e.alpha === 'number'){
+      heading = (360 - e.alpha) % 360; // احتياطي لو الحدث النسبي بس هو المتاح
+    }
+    if(heading === null || isNaN(heading)) return;
+    deviceHeadingDeg = heading;
+    applyQiblaPointerRotation();
   }
   function updateLocationUI(city, country){
     const cityLabel = city || '—';
@@ -2177,7 +2450,11 @@
     const ringSubCountry = document.getElementById('ring-sub-country');
     if(ringSubCountry && country) ringSubCountry.textContent = country;
     const countryChip = document.getElementById('country-filter-chip');
-    if(countryChip) countryChip.textContent = country ? `📍 ${country}` : `📍 ${cityLabel}`;
+    // كان بيظهر اسم الدولة بس هنا حتى لو اسم المدينة معروف — دلوقتي المدينة (لو معروفة) هي الأساس، والدولة تفصيلة إضافية بجنبها
+    if(countryChip){
+      if(city) countryChip.textContent = country ? `📍 ${cityLabel} — ${country}` : `📍 ${cityLabel}`;
+      else countryChip.textContent = country ? `📍 ${country}` : `📍 ${cityLabel}`;
+    }
     const settingsLocSub = document.getElementById('settings-location-sub');
     if(settingsLocSub) settingsLocSub.textContent = country ? `${cityLabel} — ${country} (موقع حقيقي)` : `${cityLabel} (موقع حقيقي)`;
     if(country) applyIqamaGapsForCountry(country);
@@ -2261,6 +2538,7 @@
   let adhanNotificationsEnabled = false;
   try{ adhanNotificationsEnabled = localStorage.getItem('deeni_notif_enabled') === '1'; }catch(e){}
   const ADHAN_NOTIF_IDS = Array.from({length:12}, (_, i) => i+1); // ٦ صلوات (بدون الشروق) × إشعارين لكل واحدة = ١٠ بحد أقصى، وسايبين هامش لـ١٢
+  const IQAMA_NOTIF_IDS = Array.from({length:6}, (_, i) => 300+i); // معرّفات منفصلة تمامًا عن إشعارات الأذان، عشان الاتنين يشتغلوا مع بعض من غير ما يمسح أحدهما التاني
   function getNativeNotif(){
     return (window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform() && window.Capacitor.Plugins && window.Capacitor.Plugins.LocalNotifications) ? window.Capacitor.Plugins.LocalNotifications : null;
   }
@@ -2307,6 +2585,7 @@
       try{ localStorage.setItem('deeni_notif_enabled', '1'); }catch(e){}
       updateNotifSettingsUI();
       await ensureAdhanSoundChannels();
+      await createIqamaChannel();
       await scheduleAdhanNotifications();
       showToast('اتفعّلت إشعارات الأذان — هتوصلك رسالة صوتية حقيقية قبل كل أذان بخمس دقايق ووقته ✓');
     }catch(e){
@@ -2316,6 +2595,11 @@
   function minusMinutesHM(h, m, mins){
     let total = h*60 + m - mins;
     if(total < 0) total += 24*60;
+    return {h: Math.floor(total/60), m: total % 60};
+  }
+  function addMinutesHM(h, m, mins){
+    let total = h*60 + m + mins;
+    total = ((total % (24*60)) + 24*60) % (24*60);
     return {h: Math.floor(total/60), m: total % 60};
   }
   /* ================= رسالة صوتية حقيقية لكل تنبيه أذان — مش مجرد رنة صامتة =================
@@ -2376,6 +2660,50 @@
       if(notifications.length) await nativeNotif.schedule({notifications});
     }catch(e){
       // فشل الجدولة مش لازم يوقف باقي التطبيق — المستخدم لسه يقدر يشوف مواقيت الصلاة عادي
+    }
+    // إشعار الإقامة — منفصل تمامًا عن إشعارات الأذان (وقت مختلف وصوت مختلف)، وبيحترم وقت التنبيه (الفارق أذان-إقامة)
+    // اللي المستخدم مختاره لكل صلاة زي ما هو، من غير ما يمسّه خالص
+    await scheduleIqamaNotifications();
+  }
+  async function createIqamaChannel(){
+    const nativeNotif = getNativeNotif();
+    if(!nativeNotif) return;
+    try{
+      await nativeNotif.createChannel({
+        id: 'iqama_ch',
+        name: 'تنبيه وقت الإقامة',
+        description: 'صوت تنبيه عند حلول وقت الإقامة لكل صلاة (بعد الفارق المحدد من وقت الأذان)',
+        importance: 5,
+        visibility: 1,
+        vibration: true,
+        sound: 'iqama_alert.wav'
+      });
+    }catch(e){
+      // فشل إنشاء القناة (أندرويد قديم مثلًا) مش لازم يوقف باقي الإشعارات
+    }
+  }
+  async function scheduleIqamaNotifications(){
+    const nativeNotif = getNativeNotif();
+    if(!nativeNotif || !adhanNotificationsEnabled) return;
+    try{
+      await nativeNotif.cancel({notifications: IQAMA_NOTIF_IDS.map(id => ({id}))});
+      const notifications = [];
+      let idx = 0;
+      prayerSchedule.forEach(p => {
+        if(p.key === 'shuroq' || p.iqamah == null) return; // الشروق ومفيش إقامة ليه
+        const iq = addMinutesHM(p.h, p.m, p.iqamah); // وقت الإقامة = وقت الأذان + الفارق المحدد لهذه الصلاة تحديدًا (زي ما هو، من غير أي تغيير)
+        notifications.push({
+          id: 300 + (idx++),
+          title: `حان الآن وقت إقامة ${p.name} 🕌`,
+          body: `انتهى وقت التنبيه المحدد — حان الآن وقت إقامة صلاة ${p.name}`,
+          sound: 'iqama_alert.wav',
+          channelId: 'iqama_ch',
+          schedule: {on: {hour: iq.h, minute: iq.m}, allowWhileIdle: true}
+        });
+      });
+      if(notifications.length) await nativeNotif.schedule({notifications});
+    }catch(e){
+      // فشل جدولة إشعار الإقامة مش لازم يوقف إشعارات الأذان
     }
   }
   function applyRealTimings(t){
@@ -2508,14 +2836,53 @@
   let audioLibVoices = null;   // [{reciterName, moshafName, server, surahSet:Set<number>}]
   let audioLibSelected = null; // العنصر المختار من audioLibVoices
   let audioLibPlayer = null;   // {audioEl, playing, surahNum}
-  async function openAudioLibrary(){
-    activate('audio-library');
-    if(!audioLibVoices){
-      document.getElementById('audiolib-reciter-list').innerHTML = `<div style="padding:24px 14px; font-size:12px; color:var(--text-dim); text-align:center;">جاري تحميل قائمة القراء… 📡</div>`;
+  // قائمة قراء احتياطية (مصدرها mp3quran.net) — بتتضاف دايمًا لقائمة القراء اللي بترجع من الـ API الحي،
+  // وكمان بتستخدم كقائمة كاملة لو الـ API فشل، عشان الشاشة متفضلش فاضية أبدًا.
+  const AUDIOLIB_FALLBACK_RECITERS = [
+    ['مشاري راشد العفاسي','https://server8.mp3quran.net/afs/'],
+    ['عبدالباسط عبدالصمد','https://server7.mp3quran.net/basit/'],
+    ['عبدالرحمن السديس','https://server11.mp3quran.net/sds/'],
+    ['ماهر المعيقلي','https://server12.mp3quran.net/maher/'],
+    ['سعد الغامدي','https://server7.mp3quran.net/s_gmd/'],
+    ['علي الحذيفي','https://server9.mp3quran.net/hthfi/'],
+    ['محمد صديق المنشاوي','https://server10.mp3quran.net/minsh/'],
+    ['ياسر الدوسري','https://server11.mp3quran.net/yasser/'],
+    ['أحمد بن علي العجمي','https://server10.mp3quran.net/ajm/128/'],
+    ['محمد أيوب','https://server8.mp3quran.net/ayyub/'],
+    ['محمد جبريل','https://server8.mp3quran.net/jbrl/'],
+    ['إبراهيم الأخضر','https://server6.mp3quran.net/akdr/'],
+    ['عبدالله بصفر','https://server6.mp3quran.net/bsfr/'],
+    ['هاني الرفاعي','https://server8.mp3quran.net/hani/'],
+    ['أبو بكر الشاطري','https://server11.mp3quran.net/shatri/'],
+    ['فارس عباد','https://server8.mp3quran.net/frs_a/'],
+    ['محمد المحيسني','https://server11.mp3quran.net/mhsny/'],
+    ['عبدالمحسن القاسم','https://server8.mp3quran.net/qasm/'],
+    ['صلاح بوخاطر','https://server8.mp3quran.net/bu_khtr/'],
+    ['محمود خليل الحصري','https://server13.mp3quran.net/husr/'],
+    ['سعود الشريم','https://server7.mp3quran.net/shur/'],
+    ['ناصر القطامي','https://server6.mp3quran.net/qtm/'],
+    ['منصور السالمي','https://server14.mp3quran.net/mansor/'],
+    ['نبيل الرفاعي','https://server9.mp3quran.net/nabil/'],
+    ['مصطفى إسماعيل','https://server8.mp3quran.net/mustafa/'],
+    ['خليفة الطنيجي','https://server12.mp3quran.net/tnjy/'],
+    ['محمد اللحيدان','https://server8.mp3quran.net/lhdan/'],
+    ['عبدالله عواد الجهني','https://server13.mp3quran.net/jhn/']
+  ].map(([name, server]) => ({
+    reciterName: name,
+    moshafName: 'حفص عن عاصم',
+    multiMoshaf: false,
+    server,
+    surahSet: new Set(Array.from({length: 114}, (_, i) => i + 1))
+  }));
+  let audioLibVoicesLoading = null; // Promise مشتركة، عشان لو "استماع" و"المكتبة السمعية" طلبوا التحميل في نفس الوقت ما يبقاش فيه نداءين مكررين
+  async function loadAudioLibVoices(){
+    if(audioLibVoices) return audioLibVoices;
+    if(audioLibVoicesLoading) return audioLibVoicesLoading;
+    audioLibVoicesLoading = (async () => {
+      let voices = [];
       try{
         const res = await fetch('https://mp3quran.net/api/v3/reciters?language=ar');
         const data = await res.json();
-        const voices = [];
         (data.reciters || []).forEach(r => {
           (r.moshaf || []).forEach(m => {
             if(!m.server || !m.surah_list) return;
@@ -2528,13 +2895,36 @@
             });
           });
         });
-        audioLibVoices = voices;
       }catch(err){
+        voices = [];
+      }
+      // ندمج القراء الاحتياطيين اللي مش موجودين بالفعل في نتيجة الـ API (بالاسم)، عشان نضمن وجودهم دايمًا
+      const existingNames = new Set(voices.map(v => v.reciterName));
+      AUDIOLIB_FALLBACK_RECITERS.forEach(fb => {
+        if(!existingNames.has(fb.reciterName)){
+          voices.push(fb);
+          existingNames.add(fb.reciterName);
+        }
+      });
+      audioLibVoices = voices.length ? voices : null;
+      audioLibVoicesLoading = null;
+      return audioLibVoices;
+    })();
+    return audioLibVoicesLoading;
+  }
+  async function openAudioLibrary(){
+    activate('audio-library');
+    if(!audioLibVoices){
+      document.getElementById('audiolib-reciter-list').innerHTML = `<div style="padding:24px 14px; font-size:12px; color:var(--text-dim); text-align:center;">جاري تحميل قائمة القراء… 📡</div>`;
+      const voices = await loadAudioLibVoices();
+      if(!voices || voices.length === 0){
         document.getElementById('audiolib-reciter-list').innerHTML = `<div style="padding:24px 14px; font-size:12px; color:var(--text-dim); text-align:center;">مش قادرين نجيب قائمة القراء دلوقتي — محتاج اتصال إنترنت شغال 📡</div>`;
         return;
       }
     }
+    resetAudioLibSelection();
     renderAudioLibReciters();
+    renderAudioLibSurahsInline('');
   }
   function renderAudioLibReciters(filter){
     if(!audioLibVoices) return;
@@ -2543,9 +2933,10 @@
     const el = document.getElementById('audiolib-reciter-list');
     el.innerHTML = list.map((v) => {
       const realIdx = audioLibVoices.indexOf(v);
+      const isSel = audioLibSelReciter && audioLibSelReciter.reciterName === v.reciterName;
       return `
-      <div class="reciter-item" tabindex="0" role="button" onclick="selectAudioLibVoice(${realIdx})">
-        <div class="reciter-avatar">🎧</div>
+      <div class="reciter-item${isSel ? ' sel' : ''}" tabindex="0" role="button" onclick="selectAudioLibVoice(${realIdx})">
+        <div class="reciter-avatar">${isSel ? '✅' : '🎧'}</div>
         <div class="reciter-info" style="flex:1;">
           <div class="reciter-name">${v.reciterName}</div>
           ${v.multiMoshaf ? `<div style="font-size:11px; color:var(--text-dim); margin-top:2px;">${v.moshafName}</div>` : ''}
@@ -2554,14 +2945,205 @@
       </div>`;
     }).join('') || `<div style="padding:14px; font-size:12px; color:var(--text-dim); text-align:center;">مفيش نتائج</div>`;
   }
+  // ================= اختيار الشيخ + السورة في نفس الشاشة (بند التعديل الجديد) =================
+  let audioLibSelReciter = null; // القارئ المختار (من audioLibVoices)
+  let audioLibSelSurah = null;   // رقم السورة المختارة
+  let audioLibWholeState = null; // {audioEl, reciterObj, surahNum, meta, playing, repeat, autoNext}
+  let mushafReturnScreen = 'quran'; // الشاشة اللي يرجعلها زرار الرجوع في المصحف
+  function resetAudioLibSelection(){
+    audioLibSelReciter = null;
+    audioLibSelSurah = null;
+    const p1 = document.getElementById('audiolib-reciter-picked'); if(p1) p1.textContent = '';
+    const p2 = document.getElementById('audiolib-surah-picked'); if(p2) p2.textContent = '';
+  }
   function selectAudioLibVoice(idx){
-    audioLibSelected = audioLibVoices[idx];
-    if(!audioLibSelected) return;
-    document.getElementById('audiolib-surahs-title').textContent = audioLibSelected.reciterName;
-    document.getElementById('audiolib-surahs-sub').textContent = audioLibSelected.multiMoshaf ? audioLibSelected.moshafName : `${audioLibSelected.surahSet.size} سورة متاحة من ${audioLibSelected.reciterName}`;
-    document.getElementById('audiolib-surah-search').value = '';
-    renderAudioLibSurahs();
-    activate('audio-library-surahs');
+    audioLibSelReciter = audioLibVoices[idx];
+    const label = document.getElementById('audiolib-reciter-picked');
+    if(label) label.textContent = audioLibSelReciter ? ` — ${audioLibSelReciter.reciterName} ✓` : '';
+    renderAudioLibReciters();
+    maybeOpenAudioLibPopup();
+  }
+  function renderAudioLibSurahsInline(filter){
+    const q = (filter || '').trim();
+    const list = q ? surahs.filter(s => s[1].includes(q) || String(s[0]) === q || toArabicDigits(s[0]) === q) : surahs;
+    const el = document.getElementById('audiolib-surah-list2');
+    if(!el) return;
+    el.innerHTML = list.map(s => {
+      const isSel = audioLibSelSurah === s[0];
+      return `
+      <div class="surah-item${isSel ? ' sel' : ''}" tabindex="0" role="button" aria-label="اختيار سورة ${s[1]}" onclick="selectAudioLibSurah(${s[0]})">
+        <div class="surah-num"><span>${toArabicDigits(s[0])}</span></div>
+        <div class="surah-info"><div class="surah-name">${s[1]}</div><div class="surah-meta">${s[3]} • ${toArabicDigits(s[2])} ${ayahWord(s[2])}</div></div>
+        <div class="surah-play">${isSel ? '✅' : '›'}</div>
+      </div>`;
+    }).join('') || `<div style="padding:14px; font-size:12px; color:var(--text-dim); text-align:center;">مفيش نتائج</div>`;
+  }
+  function selectAudioLibSurah(surahNumber){
+    audioLibSelSurah = surahNumber;
+    const meta = surahs.find(s => s[0] === surahNumber);
+    const label = document.getElementById('audiolib-surah-picked');
+    if(label) label.textContent = meta ? ` — ${meta[1]} ✓` : '';
+    renderAudioLibSurahsInline(document.getElementById('audiolib-surah-search2')?.value || '');
+    maybeOpenAudioLibPopup();
+  }
+  function maybeOpenAudioLibPopup(){
+    if(audioLibSelReciter && audioLibSelSurah != null){
+      openAudioLibMushafPopup(audioLibSelReciter, audioLibSelSurah);
+    }
+  }
+  // أسماء القراء المتوفر لهم صوت آية بآية دقيق (RECITER_AUDIO_FOLDERS) — لو القارئ المختار من المكتبة
+  // السمعية مطابق لواحد منهم، هنستخدم نفس تدفق "الاستماع" الأصلي (تقليب صفحات مضبوط تمامًا على كل آية).
+  // غير كده هنشغّل ملف السورة الكامل من مصدر المكتبة السمعية (mp3quran.net) مع تقليب صفحات تقريبي.
+  const AUDIOLIB_CURATED_MATCH = {
+    'مشاري راشد العفاسي': 'الشيخ مشاري بن راشد العفاسي',
+    'مشاري العفاسي': 'الشيخ مشاري بن راشد العفاسي',
+    'عبدالباسط عبدالصمد': 'الشيخ عبد الباسط عبد الصمد',
+    'عبدالرحمن السديس': 'الشيخ عبد الرحمن السديس',
+    'سعود الشريم': 'الشيخ سعود الشريم',
+    'محمود خليل الحصري': 'الشيخ محمود خليل الحصري',
+    'محمد صديق المنشاوي': 'الشيخ محمد صديق المنشاوي',
+    'ماهر المعيقلي': 'الشيخ ماهر المعيقلي',
+    'ياسر الدوسري': 'الشيخ ياسر الدوسري',
+    'أحمد بن علي العجمي': 'الشيخ أحمد العجمي',
+    'محمد أيوب': 'الشيخ محمد أيوب',
+    'علي الحذيفي': 'الشيخ علي عبد الرحمن الحذيفي',
+    'ناصر القطامي': 'الشيخ ناصر القطامي',
+    'هاني الرفاعي': 'الشيخ هاني الرفاعي',
+    'سعد الغامدي': 'الشيخ سعد الغامدي',
+    'عبدالله بصفر': 'الشيخ عبدالله بصفر',
+    'محمد جبريل': 'الشيخ محمد جبريل',
+    'إبراهيم الأخضر': 'الشيخ إبراهيم الأخضر'
+  };
+  async function openAudioLibMushafPopup(reciterObj, surahNum){
+    const meta = surahs.find(s => s[0] === surahNum);
+    if(!meta) return;
+    if(reciterObj.surahSet && !reciterObj.surahSet.has(surahNum)){
+      showToast(`"${reciterObj.reciterName}" مش متسجّل له سورة ${meta[1]} — جرّب تختار سورة تانية 🙏`);
+      audioLibSelSurah = null;
+      const label = document.getElementById('audiolib-surah-picked'); if(label) label.textContent = '';
+      return;
+    }
+    mushafReturnScreen = 'audio-library';
+    document.getElementById('mushaf-header-title').textContent = `سورة ${meta[1]}`;
+    document.getElementById('mushaf-audio-bar').style.display = 'none';
+    const curatedKey = AUDIOLIB_CURATED_MATCH[reciterObj.reciterName];
+    const opts = document.getElementById('mushaf-audiolib-options');
+    if(curatedKey && RECITER_AUDIO_FOLDERS[curatedKey]){
+      if(opts) opts.style.display = 'none';
+      selectedReciter = curatedKey;
+      await listenSurahNote(surahNum);
+    } else {
+      await openAudioLibWholeSurahPlayback(reciterObj, surahNum, meta);
+    }
+  }
+  async function openAudioLibWholeSurahPlayback(reciterObj, surahNum, meta){
+    stopSurahAudio();
+    if(audioLibWholeState && audioLibWholeState.audioEl){ audioLibWholeState.audioEl.pause(); audioLibWholeState.audioEl.src=''; }
+    const ok = await openMushafPageForAyah(surahNum, 1, {fallbackSurah: surahNum});
+    if(!ok) return;
+    const audioEl = new Audio();
+    audioEl.src = `${reciterObj.server}${pad3(surahNum)}.mp3`;
+    audioLibWholeState = {audioEl, reciterObj, surahNum, meta, playing: true, repeat: false, autoNext: false};
+    wireAudioLoadingProgress(audioEl, 'جاري تحميل السورة…');
+    audioEl.addEventListener('timeupdate', onAudioLibWholeTimeUpdate);
+    audioEl.addEventListener('ended', onAudioLibWholeEnded);
+    audioEl.addEventListener('error', () => showToast('الصوت لهذه السورة مش متاح دلوقتي — تأكد من الاتصال بالإنترنت 📡'));
+    audioEl.play().catch(()=>{});
+    const bar = document.getElementById('mushaf-audio-bar');
+    if(bar) bar.style.display = 'flex';
+    const reciterEl = document.getElementById('mushaf-audio-reciter');
+    if(reciterEl) reciterEl.textContent = `🎧 ${reciterObj.reciterName} — سورة ${meta[1]} (ملف كامل)`;
+    const opts = document.getElementById('mushaf-audiolib-options');
+    if(opts){
+      opts.style.display = 'flex';
+      const rBtn = document.getElementById('audiolib-repeat-btn'); if(rBtn) rBtn.classList.remove('active');
+      const aBtn = document.getElementById('audiolib-autonext-btn'); if(aBtn) aBtn.classList.remove('active');
+    }
+    updateAudioLibWholeUI();
+  }
+  function onAudioLibWholeTimeUpdate(){
+    const st = audioLibWholeState;
+    if(!st) return;
+    updateAudioLibWholeUI(); // أول مرة الوقت يتحرك، بيبدّل شريط "جاري التحميل %" لحالة التشغيل العادية
+    if(!st.audioEl.duration || !mushafAyahsOnPage.length) return;
+    // تقدير تقريبي لرقم الآية الحالية بناءً على نسبة الوقت من مدة السورة كاملة (تقريب لا يعتمد على توقيت دقيق لكل آية)
+    const estAyah = Math.max(1, Math.min(st.meta[2], Math.ceil((st.audioEl.currentTime / st.audioEl.duration) * st.meta[2])));
+    const lastOnPage = mushafAyahsOnPage[mushafAyahsOnPage.length - 1];
+    if(lastOnPage.surah.number === st.surahNum && estAyah > lastOnPage.numberInSurah && currentMushafPage < 604){
+      openMushafPage(currentMushafPage + 1);
+    }
+  }
+  function onAudioLibWholeEnded(){
+    const st = audioLibWholeState;
+    if(!st) return;
+    if(st.repeat){ st.audioEl.currentTime = 0; st.audioEl.play().catch(()=>{}); return; }
+    if(st.autoNext){
+      const nextNum = st.surahNum + 1;
+      if(nextNum > 114){ showToast('الحمد لله، خلصنا القرآن الكريم كله ✓'); stopAudioLibWholePlayback(); return; }
+      const nextMeta = surahs.find(s => s[0] === nextNum);
+      openAudioLibWholeSurahPlayback(st.reciterObj, nextNum, nextMeta);
+      return;
+    }
+    st.playing = false;
+    updateAudioLibWholeUI();
+  }
+  function toggleAudioLibWholePlayback(){
+    const st = audioLibWholeState;
+    if(!st) return;
+    if(st.playing){ st.audioEl.pause(); st.playing = false; } else { st.audioEl.play().catch(()=>{}); st.playing = true; }
+    updateAudioLibWholeUI();
+  }
+  function toggleAudioLibWholeRepeat(el){
+    const st = audioLibWholeState;
+    if(!st) return;
+    st.repeat = !st.repeat;
+    if(el) el.classList.toggle('active', st.repeat);
+  }
+  function toggleAudioLibWholeAutoNext(el){
+    const st = audioLibWholeState;
+    if(!st) return;
+    st.autoNext = !st.autoNext;
+    if(el) el.classList.toggle('active', st.autoNext);
+  }
+  function downloadAudioLibWholeSurah(){
+    const st = audioLibWholeState;
+    if(!st){ showToast('اختار قارئ وسورة الأول عشان تقدر تحمّل 🙏'); return; }
+    const a = document.createElement('a');
+    a.href = st.audioEl.src;
+    a.download = `${st.reciterObj.reciterName}_سورة_${st.meta[1]}.mp3`;
+    document.body.appendChild(a); a.click(); a.remove();
+    showToast('جاري التحميل ⬇️');
+  }
+  function updateAudioLibWholeUI(){
+    const st = audioLibWholeState;
+    if(!st) return;
+    const btn = document.getElementById('mushaf-audio-playbtn');
+    if(btn) btn.textContent = st.playing ? '⏸' : '▶';
+    const prog = document.getElementById('mushaf-audio-progress');
+    // لو لسه بيحمّل (currentTime صفر) سيبي شريط نسبة التحميل زي ما هو من wireAudioLoadingProgress، بدل ما نمسحه فورًا
+    if(prog && (st.audioEl.currentTime > 0 || !st.playing)){
+      prog.textContent = st.playing ? 'جاري تلاوة السورة كاملة' : 'متوقف';
+    }
+  }
+  function stopAudioLibWholePlayback(){
+    if(audioLibWholeState && audioLibWholeState.audioEl){ audioLibWholeState.audioEl.pause(); audioLibWholeState.audioEl.src=''; }
+    audioLibWholeState = null;
+    const opts = document.getElementById('mushaf-audiolib-options'); if(opts) opts.style.display = 'none';
+    const prevBtn = document.getElementById('mushaf-audio-prevbtn'); if(prevBtn) prevBtn.style.display = '';
+    const nextBtn = document.getElementById('mushaf-audio-nextbtn'); if(nextBtn) nextBtn.style.display = '';
+  }
+  // ================= أزرار التحكّم الموحّدة في شريط الصوت (بتفرّق بين "استماع دقيق آية بآية" و"ملف السورة الكامل") =================
+  function toggleMushafAudioUnified(){
+    if(audioLibWholeState){ toggleAudioLibWholePlayback(); return; }
+    if(surahAudioState){ toggleSurahAudio(); return; }
+  }
+  function mushafAudioPrevUnified(){
+    if(audioLibWholeState){ audioLibWholeState.audioEl.currentTime = Math.max(0, audioLibWholeState.audioEl.currentTime - 10); return; }
+    if(surahAudioState){ surahAudioPrevAyah(); return; }
+  }
+  function mushafAudioNextUnified(){
+    if(audioLibWholeState){ audioLibWholeState.audioEl.currentTime = Math.min(audioLibWholeState.audioEl.duration || 0, audioLibWholeState.audioEl.currentTime + 10); return; }
+    if(surahAudioState){ surahAudioNextAyah(); return; }
   }
   function renderAudioLibSurahs(filter){
     if(!audioLibSelected) return;
@@ -2620,21 +3202,19 @@
      لنا لأن دومينات wikimedia.org ممنوعة عليها، فبنفتح صفحة الملف الرسمية في متصفح المستخدم بدل التضمين
      المباشر — نفس مبدأ "لو مش متأكدين نضمّن، بنوجّه لمصدر رسمي بدل ما نخمّن ونفشل بصمت". */
   const VIDEO_LIBRARY_ITEMS = [
-    {title:'أذان الحرم المكي', sub:'تسجيل حقيقي للأذان من المسجد الحرام بمكة المكرمة', url:'https://commons.wikimedia.org/wiki/File:Adhan,_Great_Mosque_of_Mecca_-_Jan_21,_2013.webm'},
-    {title:'أذان المغرب من الحرم المكي', sub:'أذان المغرب مسجَّل من داخل المسجد الحرام', url:'https://commons.wikimedia.org/wiki/File:Maghrib_Adhan_at_the_Masjid_al_Haram,_Mecca_-_25_Feb,_2012.webm'},
-    {title:'الكعبة المشرفة في رمضان', sub:'مشاهد حقيقية من المسجد الحرام والكعبة المشرفة', url:'https://commons.wikimedia.org/wiki/File:Makkah_Al-Mukarramah_-Kaaba-_Ramadan_2016.webm'},
-    {title:'مناسك الحج', sub:'فيديو توثيقي لمناسك الحج', url:'https://commons.wikimedia.org/wiki/File:Hajj.ogv'},
-    {title:'المسجد النبوي الشريف', sub:'صور وفيديوهات من المسجد النبوي بالمدينة المنورة', url:'https://commons.wikimedia.org/wiki/Category:Al-Masjid_an-Nabawi'},
-    {title:'الطواف حول الكعبة', sub:'فئة كاملة من فيديوهات وصور الطواف', url:'https://commons.wikimedia.org/wiki/Category:Tawaf'},
-    {title:'فيديوهات مساجد حول العالم', sub:'فئة عامة لفيديوهات مساجد من دول مختلفة', url:'https://commons.wikimedia.org/wiki/Category:Videos_of_mosques'}
+    {title:'فيديو إسلامي ١', sub:'', url:'https://fcvpmvjtzbwgvylblogp.supabase.co/storage/v1/object/public/videos%20for%20Islam%20ic%20Application/Islamic%20Video.1.mp4'},
+    {title:'فيديو إسلامي ٢', sub:'', url:'https://fcvpmvjtzbwgvylblogp.supabase.co/storage/v1/object/public/videos%20for%20Islam%20ic%20Application/Islamic%20Video.2.mp4'},
+    {title:'فيديو إسلامي ٣', sub:'', url:'https://fcvpmvjtzbwgvylblogp.supabase.co/storage/v1/object/public/videos%20for%20Islam%20ic%20Application/Islamic%20Video.3.mp4'},
+    {title:'فيديو إسلامي ٤', sub:'', url:'https://fcvpmvjtzbwgvylblogp.supabase.co/storage/v1/object/public/videos%20for%20Islam%20ic%20Application/Islamic%20Video.4.mp4'}
   ];
   function openVideoLibrary(){
     const el = document.getElementById('video-lib-list');
-    el.innerHTML = VIDEO_LIBRARY_ITEMS.map(v => `
-      <div class="scholar-card" tabindex="0" role="button" aria-label="فتح ${v.title}" onclick="window.open('${v.url}', '_blank', 'noopener')">
-        <div class="scholar-avatar">🎬</div>
-        <div class="scholar-info"><div class="scholar-name">${v.title}</div><div class="scholar-note">${v.sub}</div></div>
-        <div class="scholar-chevron">↗</div>
+    el.innerHTML = VIDEO_LIBRARY_ITEMS.map((v,i) => `
+      <div class="video-lib-card">
+        <video class="video-lib-player" controls preload="none" playsinline poster="" aria-label="${v.title}">
+          <source src="${v.url}" type="video/mp4">
+        </video>
+        <div class="video-lib-title">${v.title}</div>
       </div>`).join('');
     activate('video-library');
   }
@@ -2681,12 +3261,12 @@
       const st = benefitState[b.key];
       return `
       <div class="benefit-row">
-        <div class="perm-toggle ${st.enabled?'on':''}" tabindex="0" role="switch" aria-checked="${st.enabled?'true':'false'}" aria-label="تفعيل تذكير ${b.title}" onclick="toggleBenefit('${b.key}')"><div class="perm-toggle-knob"></div></div>
-        <div class="benefit-text">
+        <div class="perm-toggle ${st.enabled?'on':''}" tabindex="0" role="switch" aria-checked="${st.enabled?'true':'false'}" aria-label="تفعيل تذكير ${b.title}" onclick="event.stopPropagation(); toggleBenefit('${b.key}')"><div class="perm-toggle-knob"></div></div>
+        <div class="benefit-text" tabindex="0" role="button" aria-label="فتح ${b.title}" onclick="openBenefitContent('${b.key}')">
           <div class="benefit-title">${b.icon} ${b.title}</div>
           <div class="benefit-sub">${benefitScheduleLabel(b.key)}</div>
         </div>
-        <div class="benefit-bell" tabindex="0" role="button" aria-label="ضبط وقت تذكير ${b.title}" onclick="openBenefitScheduler('${b.key}')">🔔</div>
+        <div class="benefit-bell" tabindex="0" role="button" aria-label="ضبط وقت تذكير ${b.title}" onclick="event.stopPropagation(); openBenefitScheduler('${b.key}')">🔔</div>
       </div>`;
     }).join('');
   }
@@ -2709,6 +3289,64 @@
     try{
       await nativeNotif.schedule({notifications:[{id, title:`تذكير: ${b.title} 🌟`, body:b.desc, schedule}]});
     }catch(e){}
+  }
+  // بيفتح المحتوى الفعلي لما المستخدم يدوس على اسم البند نفسه (مش المفتاح ولا الجرس) — قبل كده مكانش بيعمل حاجة خالص
+  // نقاط بداية الأجزاء الثلاثين (سورة:آية) — نفس التقسيم المعتمد في كل نسخ المصحف المطبوعة.
+  const JUZ_START = [
+    [1,1],[2,142],[2,253],[3,93],[4,24],[4,148],[5,82],[6,111],[7,88],[8,41],
+    [9,93],[11,6],[12,53],[15,1],[17,1],[18,75],[21,1],[23,1],[25,21],[27,56],
+    [29,46],[33,31],[36,28],[39,32],[41,47],[46,1],[51,31],[58,1],[67,1],[78,1]
+  ];
+  function todaysWirdJuz(){
+    // بنلف على الثلاثين جزء بالتناوب يوم بيوم بحسب تاريخ اليوم، عشان في آخر الشهر يكون المستخدم خَتَم دورة كاملة تقريبًا
+    const dayOfMonth = new Date().getDate();
+    return ((dayOfMonth - 1) % 30) + 1;
+  }
+  function openQuranPicker(mode){
+    goTab('quran');
+    quranMode = null;
+    const sel = document.getElementById('quran-mode-select');
+    const rp = document.getElementById('quran-read-panel');
+    const lp = document.getElementById('quran-listen-panel');
+    if(sel) sel.style.display = 'flex';
+    if(rp) rp.style.display = 'none';
+    if(lp) lp.style.display = 'none';
+  }
+  async function openBenefitContent(key){
+    if(key === 'kahf'){
+      goTab('quran');
+      quranMode = 'read';
+      document.getElementById('quran-mode-select').style.display = 'none';
+      document.getElementById('quran-read-panel').style.display = 'block';
+      await openMushafReading(18); // سورة الكهف
+      return;
+    }
+    if(key === 'mulk'){
+      goTab('quran');
+      quranMode = 'read';
+      document.getElementById('quran-mode-select').style.display = 'none';
+      document.getElementById('quran-read-panel').style.display = 'block';
+      await openMushafReading(67); // سورة الملك
+      return;
+    }
+    if(key === 'wird'){
+      const juz = todaysWirdJuz();
+      const [surahNum, ayahNum] = JUZ_START[juz - 1];
+      goTab('quran');
+      quranMode = 'read';
+      document.getElementById('quran-mode-select').style.display = 'none';
+      document.getElementById('quran-read-panel').style.display = 'block';
+      const meta = surahs.find(s => s[0] === surahNum);
+      if(meta) document.getElementById('mushaf-header-title').textContent = `سورة ${meta[1]}`;
+      await openMushafPageForAyah(surahNum, ayahNum, {fallbackSurah: surahNum});
+      showToast(`وردك اليوم: الجزء ${toArabicDigits(juz)} 📖 (بيتغيّر يوم بيوم عشان تختم كل شهر تقريبًا)`);
+      return;
+    }
+    if(key === 'tahfeez'){
+      openQuranPicker();
+      showToast('اختار السورة أو الجزء اللي بتحفظه دلوقتي وابدأ المراجعة 📝');
+      return;
+    }
   }
   async function toggleBenefit(key){
     const st = benefitState[key];
@@ -2995,35 +3633,69 @@
   const duaCategories = [
     // ---- يومي ----
     {slug:'sleep', name:'النوم', icon:'🛏️', group:'daily', items:[
-      {title:'دعاء النوم', text:'بِاسْمِكَ رَبِّي وَضَعْتُ جَنْبِي، وَبِكَ أَرْفَعُهُ، فَإِنْ أَمْسَكْتَ نَفْسِي فَارْحَمْهَا، وَإِنْ أَرْسَلْتَهَا فَاحْفَظْهَا بِمَا تَحْفَظُ بِهِ عِبَادَكَ الصَّالِحِينَ'}
+      {title:'دعاء قبل النوم', text:'بِاسْمِكَ رَبِّي وَضَعْتُ جَنْبِي، وَبِكَ أَرْفَعُهُ، فَإِنْ أَمْسَكْتَ نَفْسِي فَارْحَمْهَا، وَإِنْ أَرْسَلْتَهَا فَاحْفَظْهَا بِمَا تَحْفَظُ بِهِ عِبَادَكَ الصَّالِحِينَ (متفق عليه)'},
+      {title:'دعاء بعد الاستيقاظ من النوم', text:'الْحَمْدُ لِلَّهِ الَّذِي أَحْيَانَا بَعْدَ مَا أَمَاتَنَا وَإِلَيْهِ النُّشُورُ (رواه البخاري)'}
     ]},
     {slug:'toilet', name:'المرحاض', icon:'🚽', group:'daily', items:[
-      {title:'عند دخول الخلاء', text:'بِسْمِ اللَّهِ، اللَّهُمَّ إِنِّي أَعُوذُ بِكَ مِنَ الْخُبْثِ وَالْخَبَائِث'},
+      {title:'عند الدخول إلى الخلاء', text:'بِسْمِ اللَّهِ، اللَّهُمَّ إِنِّي أَعُوذُ بِكَ مِنَ الْخُبْثِ وَالْخَبَائِث'},
       {title:'عند الخروج من الخلاء', text:'غُفْرَانَكَ'}
     ]},
     {slug:'wudu', name:'الوضوء', icon:'💧', group:'daily', items:[
+      {title:'عند بدء الوضوء', text:'بِسْمِ اللَّهِ (رواه أبو داود والترمذي — والتسمية عند الوضوء سنة)'},
       {title:'بعد الفراغ من الوضوء', text:'أَشْهَدُ أَنْ لَا إِلَهَ إِلَّا اللَّهُ وَحْدَهُ لَا شَرِيكَ لَهُ، وَأَشْهَدُ أَنَّ مُحَمَّدًا عَبْدُهُ وَرَسُولُهُ'},
       {title:'دعاء آخر بعد الوضوء', text:'سُبْحَانَكَ اللَّهُمَّ وَبِحَمْدِكَ، أَشْهَدُ أَنْ لَا إِلَهَ إِلَّا أَنْتَ، أَسْتَغْفِرُكَ وَأَتُوبُ إِلَيْكَ'}
     ]},
-    {slug:'mosque', name:'مسجد', icon:'🕌', group:'daily', items:[
-      {title:'عند دخول المسجد', text:'أَعُوذُ بِاللَّهِ الْعَظِيمِ، وَبِوَجْهِهِ الْكَرِيمِ، وَسُلْطَانِهِ الْقَدِيمِ، مِنَ الشَّيْطَانِ الرَّجِيمِ، بِسْمِ اللَّهِ، وَالصَّلَاةُ وَالسَّلَامُ عَلَى رَسُولِ اللَّهِ، اللَّهُمَّ افْتَحْ لِي أَبْوَابَ رَحْمَتِكَ'}
+    {slug:'mosque', name:'المسجد', icon:'🕌', group:'daily', items:[
+      {title:'عند الذهاب إلى المسجد', text:'اللَّهُمَّ اجْعَلْ فِي قَلْبِي نُورًا، وَفِي لِسَانِي نُورًا، وَاجْعَلْ فِي سَمْعِي نُورًا، وَاجْعَلْ فِي بَصَرِي نُورًا، وَاجْعَلْ مِنْ خَلْفِي نُورًا وَمِنْ أَمَامِي نُورًا، وَاجْعَلْ مِنْ فَوْقِي نُورًا وَمِنْ تَحْتِي نُورًا، اللَّهُمَّ أَعْطِنِي نُورًا (متفق عليه)'},
+      {title:'عند دخول المسجد', text:'أَعُوذُ بِاللَّهِ الْعَظِيمِ، وَبِوَجْهِهِ الْكَرِيمِ، وَسُلْطَانِهِ الْقَدِيمِ، مِنَ الشَّيْطَانِ الرَّجِيمِ، بِسْمِ اللَّهِ، وَالصَّلَاةُ وَالسَّلَامُ عَلَى رَسُولِ اللَّهِ، اللَّهُمَّ افْتَحْ لِي أَبْوَابَ رَحْمَتِكَ'},
+      {title:'عند مغادرة المسجد', text:'بِسْمِ اللَّهِ، وَالصَّلَاةُ وَالسَّلَامُ عَلَى رَسُولِ اللَّهِ، اللَّهُمَّ إِنِّي أَسْأَلُكَ مِنْ فَضْلِكَ (رواه مسلم)'}
     ]},
-    {slug:'salah', name:'صلاة', icon:'🤲', group:'daily', items:[
+    {slug:'salah', name:'الصلاة', icon:'🤲', group:'daily', items:[
+      {title:'عند سماع الأذان', text:'يُردّد المستمع خلف المؤذن كل ما يقول (ما عدا "حيّ على الصلاة" و"حيّ على الفلاح" فيقول بدلهما: لَا حَوْلَ وَلَا قُوَّةَ إِلَّا بِاللَّهِ)، ثم يُصلّي على النبي ﷺ (رواه مسلم)'},
+      {title:'بعد سماع الأذان', text:'اللَّهُمَّ رَبَّ هَذِهِ الدَّعْوَةِ التَّامَّةِ، وَالصَّلَاةِ الْقَائِمَةِ، آتِ مُحَمَّدًا الْوَسِيلَةَ وَالْفَضِيلَةَ، وَابْعَثْهُ مَقَامًا مَحْمُودًا الَّذِي وَعَدْتَهُ (رواه البخاري)'},
+      {title:'بعد التكبير (دعاء الاستفتاح)', text:'سُبْحَانَكَ اللَّهُمَّ وَبِحَمْدِكَ، وَتَبَارَكَ اسْمُكَ، وَتَعَالَى جَدُّكَ، وَلَا إِلَهَ غَيْرُكَ (رواه أبو داود والترمذي)'},
+      {title:'أثناء الركوع', text:'سُبْحَانَ رَبِّيَ الْعَظِيمِ (×٣) (رواه مسلم)'},
+      {title:'أثناء السجود', text:'سُبْحَانَ رَبِّيَ الْأَعْلَى (×٣) (رواه مسلم)'},
+      {title:'الجلوس بين السجدتين', text:'رَبِّ اغْفِرْ لِي، رَبِّ اغْفِرْ لِي — أو: اللَّهُمَّ اغْفِرْ لِي، وَارْحَمْنِي، وَاجْبُرْنِي، وَاهْدِنِي، وَارْزُقْنِي (رواه أبو داود)'},
+      {title:'الدعاء عند قراءة القرآن (الاستعاذة)', text:'أَعُوذُ بِاللَّهِ مِنَ الشَّيْطَانِ الرَّجِيمِ — تُقال قبل بدء القراءة في كل صلاة (سورة النحل: ٩٨)'},
+      {title:'عند التشهد الأخير', text:'التَّحِيَّاتُ لِلَّهِ وَالصَّلَوَاتُ وَالطَّيِّبَاتُ، السَّلَامُ عَلَيْكَ أَيُّهَا النَّبِيُّ وَرَحْمَةُ اللَّهِ وَبَرَكَاتُهُ، السَّلَامُ عَلَيْنَا وَعَلَى عِبَادِ اللَّهِ الصَّالِحِينَ، أَشْهَدُ أَنْ لَا إِلَهَ إِلَّا اللَّهُ وَأَشْهَدُ أَنَّ مُحَمَّدًا عَبْدُهُ وَرَسُولُهُ (متفق عليه)'},
+      {title:'الصلاة الإبراهيمية', text:'اللَّهُمَّ صَلِّ عَلَى مُحَمَّدٍ وَعَلَى آلِ مُحَمَّدٍ، كَمَا صَلَّيْتَ عَلَى إِبْرَاهِيمَ وَعَلَى آلِ إِبْرَاهِيمَ، إِنَّكَ حَمِيدٌ مَجِيدٌ. اللَّهُمَّ بَارِكْ عَلَى مُحَمَّدٍ وَعَلَى آلِ مُحَمَّدٍ، كَمَا بَارَكْتَ عَلَى إِبْرَاهِيمَ وَعَلَى آلِ إِبْرَاهِيمَ، إِنَّكَ حَمِيدٌ مَجِيدٌ (متفق عليه)'},
+      {title:'بعد التشهد (قبل السلام)', text:'اللَّهُمَّ إِنِّي أَعُوذُ بِكَ مِنْ عَذَابِ جَهَنَّمَ، وَمِنْ عَذَابِ الْقَبْرِ، وَمِنْ فِتْنَةِ الْمَحْيَا وَالْمَمَاتِ، وَمِنْ شَرِّ فِتْنَةِ الْمَسِيحِ الدَّجَّالِ (رواه مسلم)'},
+      {title:'دعاء القنوت', text:'اللَّهُمَّ اهْدِنِي فِيمَنْ هَدَيْتَ، وَعَافِنِي فِيمَنْ عَافَيْتَ، وَتَوَلَّنِي فِيمَنْ تَوَلَّيْتَ، وَبَارِكْ لِي فِيمَا أَعْطَيْتَ، وَقِنِي شَرَّ مَا قَضَيْتَ، فَإِنَّكَ تَقْضِي وَلَا يُقْضَى عَلَيْكَ، وَإِنَّهُ لَا يَذِلُّ مَنْ وَالَيْتَ، وَلَا يَعِزُّ مَنْ عَادَيْتَ، تَبَارَكْتَ رَبَّنَا وَتَعَالَيْتَ (رواه أبو داود والترمذي)'},
+      {title:'بعد صلاة الفجر', text:'اللَّهُمَّ إِنِّي أَسْأَلُكَ عِلْمًا نَافِعًا، وَرِزْقًا طَيِّبًا، وَعَمَلًا مُتَقَبَّلًا (رواه ابن ماجه — تُقال بعد سلام الفجر)'},
       {title:'بعد التسليم من الصلاة', text:'أَسْتَغْفِرُ اللَّهَ (×٣)، اللَّهُمَّ أَنْتَ السَّلَامُ وَمِنْكَ السَّلَامُ، تَبَارَكْتَ يَا ذَا الْجَلَالِ وَالْإِكْرَام'}
     ]},
     {slug:'home', name:'منزل', icon:'🏠', group:'daily', items:[
+      {title:'عند مغادرة المنزل', text:'بِسْمِ اللَّهِ، تَوَكَّلْتُ عَلَى اللَّهِ، وَلَا حَوْلَ وَلَا قُوَّةَ إِلَّا بِاللَّهِ'},
       {title:'عند دخول المنزل', text:'بِسْمِ اللَّهِ وَلَجْنَا، وَبِسْمِ اللَّهِ خَرَجْنَا، وَعَلَى اللَّهِ رَبِّنَا تَوَكَّلْنَا'},
-      {title:'عند الخروج من المنزل', text:'بِسْمِ اللَّهِ، تَوَكَّلْتُ عَلَى اللَّهِ، وَلَا حَوْلَ وَلَا قُوَّةَ إِلَّا بِاللَّهِ'}
+      {title:'عند الصعود إلى مكان عالٍ', text:'اللَّهُ أَكْبَرُ (كان النبي ﷺ إذا صعد كبّر — رواه البخاري)'},
+      {title:'عند النزول من مكان عالٍ', text:'سُبْحَانَ اللَّهِ (كان النبي ﷺ إذا نزل سبّح — رواه البخاري)'}
     ]},
     {slug:'clothes', name:'ملابس', icon:'👕', group:'daily', items:[
-      {title:'عند لبس الثوب', text:'الْحَمْدُ لِلَّهِ الَّذِي كَسَانِي هَذَا (الثَّوْبَ) وَرَزَقَنِيهِ مِنْ غَيْرِ حَوْلٍ مِنِّي وَلَا قُوَّة'}
+      {title:'عند ارتداء الملابس', text:'الْحَمْدُ لِلَّهِ الَّذِي كَسَانِي هَذَا (الثَّوْبَ) وَرَزَقَنِيهِ مِنْ غَيْرِ حَوْلٍ مِنِّي وَلَا قُوَّة (رواه أبو داود والترمذي)'},
+      {title:'عند ارتداء ملابس جديدة', text:'اللَّهُمَّ لَكَ الْحَمْدُ أَنْتَ كَسَوْتَنِيهِ، أَسْأَلُكَ مِنْ خَيْرِهِ وَخَيْرِ مَا صُنِعَ لَهُ، وَأَعُوذُ بِكَ مِنْ شَرِّهِ وَشَرِّ مَا صُنِعَ لَهُ (رواه أبو داود والترمذي)'},
+      {title:'عند النظر إلى المرآة', text:'اللَّهُمَّ كَمَا حَسَّنْتَ خَلْقِي فَحَسِّنْ خُلُقِي (رواه أحمد)'}
     ]},
-    {slug:'travel', name:'سفر', icon:'✈️', group:'daily', items:[
-      {title:'دعاء السفر', text:'اللَّهُ أَكْبَرُ (×٣)، سُبْحَانَ الَّذِي سَخَّرَ لَنَا هَذَا وَمَا كُنَّا لَهُ مُقْرِنِينَ، اللَّهُمَّ إِنَّا نَسْأَلُكَ فِي سَفَرِنَا هَذَا الْبِرَّ وَالتَّقْوَى، وَمِنَ الْعَمَلِ مَا تَرْضَى، اللَّهُمَّ هَوِّنْ عَلَيْنَا سَفَرَنَا هَذَا وَاطْوِ عَنَّا بُعْدَهُ'}
+    {slug:'car', name:'السيارة', icon:'🚗', group:'daily', items:[
+      {title:'عند ركوب السيارة', text:'بِسْمِ اللَّهِ، الْحَمْدُ لِلَّهِ (×٣)، اللَّهُ أَكْبَرُ (×٣)، سُبْحَانَ الَّذِي سَخَّرَ لَنَا هَذَا وَمَا كُنَّا لَهُ مُقْرِنِينَ، وَإِنَّا إِلَى رَبِّنَا لَمُنْقَلِبُونَ (رواه مسلم)'}
+    ]},
+    {slug:'travel', name:'السفر', icon:'✈️', group:'daily', items:[
+      {title:'دعاء السفر', text:'اللَّهُ أَكْبَرُ (×٣)، سُبْحَانَ الَّذِي سَخَّرَ لَنَا هَذَا وَمَا كُنَّا لَهُ مُقْرِنِينَ، اللَّهُمَّ إِنَّا نَسْأَلُكَ فِي سَفَرِنَا هَذَا الْبِرَّ وَالتَّقْوَى، وَمِنَ الْعَمَلِ مَا تَرْضَى، اللَّهُمَّ هَوِّنْ عَلَيْنَا سَفَرَنَا هَذَا وَاطْوِ عَنَّا بُعْدَهُ'},
+      {title:'عند ركوب الطائرة', text:'بِسْمِ اللَّهِ، الْحَمْدُ لِلَّهِ، سُبْحَانَ الَّذِي سَخَّرَ لَنَا هَذَا وَمَا كُنَّا لَهُ مُقْرِنِينَ، وَإِنَّا إِلَى رَبِّنَا لَمُنْقَلِبُونَ (رواه مسلم)'},
+      {title:'عند اقتراب الليل أثناء السفر', text:'يَا أَرْضُ رَبِّي وَرَبُّكِ اللَّهُ، أَعُوذُ بِاللَّهِ مِنْ شَرِّكِ وَشَرِّ مَا فِيكِ، وَشَرِّ مَا خُلِقَ فِيكِ، وَشَرِّ مَا يَدِبُّ عَلَيْكِ، أَعُوذُ بِاللَّهِ مِنْ شَرِّ أَسَدٍ وَأَسْوَدَ، وَمِنَ الْحَيَّةِ وَالْعَقْرَبِ (رواه أبو داود)'},
+      {title:'قبل النوم أثناء السفر', text:'بِاسْمِكَ رَبِّي وَضَعْتُ جَنْبِي، وَبِكَ أَرْفَعُهُ، فَإِنْ أَمْسَكْتَ نَفْسِي فَارْحَمْهَا، وَإِنْ أَرْسَلْتَهَا فَاحْفَظْهَا بِمَا تَحْفَظُ بِهِ عِبَادَكَ الصَّالِحِينَ'},
+      {title:'عند العودة من السفر', text:'آيِبُونَ تَائِبُونَ عَابِدُونَ لِرَبِّنَا حَامِدُونَ (رواه البخاري ومسلم — تُقال مع التكبير عند الإشراف على البلد)'}
     ]},
     {slug:'food', name:'طعام', icon:'🍴', group:'daily', items:[
-      {title:'قبل الطعام', text:'بِسْمِ اللَّهِ، فَإِنْ نَسِيَ فِي أَوَّلِهِ فَلْيَقُلْ: بِسْمِ اللَّهِ فِي أَوَّلِهِ وَآخِرِهِ'},
-      {title:'بعد الطعام', text:'الْحَمْدُ لِلَّهِ الَّذِي أَطْعَمَنِي هَذَا وَرَزَقَنِيهِ مِنْ غَيْرِ حَوْلٍ مِنِّي وَلَا قُوَّةٍ'}
+      {title:'قبل تناول الطعام', text:'بِسْمِ اللَّهِ'},
+      {title:'عند نسيان ذكر الله قبل الطعام', text:'بِسْمِ اللَّهِ فِي أَوَّلِهِ وَآخِرِهِ (رواه أبو داود والترمذي — تُقال فور التذكر أثناء الأكل)'},
+      {title:'بعد الانتهاء من الطعام', text:'الْحَمْدُ لِلَّهِ الَّذِي أَطْعَمَنِي هَذَا وَرَزَقَنِيهِ مِنْ غَيْرِ حَوْلٍ مِنِّي وَلَا قُوَّةٍ'},
+      {title:'قبل الشراب', text:'بِسْمِ اللَّهِ'},
+      {title:'بعد الشراب', text:'الْحَمْدُ لِلَّهِ الَّذِي سَقَانِي هَذَا وَجَعَلَهُ عَذْبًا فُرَاتًا بِرَحْمَتِهِ، وَلَمْ يَجْعَلْهُ مِلْحًا أُجَاجًا بِذُنُوبِي (رواه ابن السني)'},
+      {title:'عند تناول الطعام في بيت شخص ما', text:'أَفْطَرَ عِنْدَكُمُ الصَّائِمُونَ، وَأَكَلَ طَعَامَكُمُ الْأَبْرَارُ، وَصَلَّتْ عَلَيْكُمُ الْمَلَائِكَةُ (رواه أبو داود)'},
+      {title:'عند بداية الصوم (النية)', text:'اللَّهُمَّ إِنِّي نَوَيْتُ صَوْمَ غَدٍ لَكَ — النية محلّها القلب، والنطق بها ليس شرطًا (رواه أبو داود — والحديث في سنده كلام، والعمل على أن النية قلبية)'},
+      {title:'عند البدء بالإفطار بعد الصوم', text:'ذَهَبَ الظَّمَأُ، وَابْتَلَّتِ الْعُرُوقُ، وَثَبَتَ الْأَجْرُ إِنْ شَاءَ اللَّهُ (رواه أبو داود)'},
+      {title:'للشخص الذي يقدّم لك وجبة إفطار بعد الصوم', text:'أَفْطَرَ عِنْدَكُمُ الصَّائِمُونَ، وَأَكَلَ طَعَامَكُمُ الْأَبْرَارُ، وَصَلَّتْ عَلَيْكُمُ الْمَلَائِكَةُ (رواه أبو داود)'}
     ]},
     // ---- أذكار ----
     {slug:'daily-dhikr', name:'الذكر اليومي', icon:'📿', group:'adhkar', items:[
@@ -3052,6 +3724,9 @@
       {title:'البركة في الرزق', text:'اللَّهُمَّ بَارِكْ لَنَا فِيمَا رَزَقْتَنَا، وَقِنَا عَذَابَ النَّارِ (دعاء مأثور عند الطعام)'},
       {title:'صلة الرحم سبب لبسط الرزق', text:'مَنْ سَرَّهُ أَنْ يُبْسَطَ لَهُ فِي رِزْقِهِ، وَيُنْسَأَ لَهُ فِي أَثَرِهِ، فَلْيَصِلْ رَحِمَهُ (رواه البخاري)'}
     ]},
+    {slug:'quran-reward', name:'ثواب القرآن', icon:'📗', group:'adhkar', items:[
+      {title:'ثواب ثلث القرآن', text:'"قُلْ هُوَ اللَّهُ أَحَدٌ" تعدل ثلث القرآن — عَنْ أَبِي سَعِيدٍ الْخُدْرِيِّ رضي الله عنه أَنَّ رَسُولَ اللَّهِ ﷺ قَالَ: «وَالَّذِي نَفْسِي بِيَدِهِ إِنَّهَا لَتَعْدِلُ ثُلُثَ الْقُرْآنِ» (متفق عليه)'}
+    ]},
     {slug:'knowledge', name:'معرفة', icon:'📖', group:'adhkar', items:[
       {title:'طلب زيادة العلم', text:'رَبِّ زِدْنِي عِلْمًا (سورة طه: ١١٤)'},
       {title:'دعاء طلب العلم النافع', text:'اللَّهُمَّ انْفَعْنِي بِمَا عَلَّمْتَنِي، وَعَلِّمْنِي مَا يَنْفَعُنِي، وَزِدْنِي عِلْمًا (رواه الترمذي وابن ماجه)'},
@@ -3065,11 +3740,21 @@
       {title:'دعاء الثبات والرشد', text:'اللَّهُمَّ إِنِّي أَسْأَلُكَ الثَّبَاتَ فِي الْأَمْرِ، وَالْعَزِيمَةَ عَلَى الرُّشْدِ (رواه مسلم)'},
       {title:'علامة كمال الإيمان', text:'أَكْمَلُ الْمُؤْمِنِينَ إِيمَانًا أَحْسَنُهُمْ خُلُقًا (رواه أبو داود والترمذي)'}
     ]},
+    {slug:'praise-allah', name:'الثناء على الله', icon:'🌟', group:'adhkar', items:[
+      {title:'الثناء على الله', text:'اللَّهُمَّ لَكَ الْحَمْدُ مِلْءَ السَّمَاوَاتِ وَمِلْءَ الْأَرْضِ وَمِلْءَ مَا شِئْتَ مِنْ شَيْءٍ بَعْدُ، أَهْلَ الثَّنَاءِ وَالْمَجْدِ، أَحَقُّ مَا قَالَ الْعَبْدُ، وَكُلُّنَا لَكَ عَبْدٌ (رواه مسلم)'},
+      {title:'أحب الكلام إلى الله', text:'سُبْحَانَ اللَّهِ وَبِحَمْدِهِ، سُبْحَانَ اللَّهِ الْعَظِيمِ (رواه مسلم)'}
+    ]},
+    {slug:'success', name:'النجاح', icon:'🏆', group:'adhkar', items:[
+      {title:'دعاء للنجاح', text:'رَبِّ اشْرَحْ لِي صَدْرِي، وَيَسِّرْ لِي أَمْرِي (سورة طه: ٢٥-٢٦)'},
+      {title:'لتنجح في الدنيا والآخرة', text:'رَبَّنَا آتِنَا فِي الدُّنْيَا حَسَنَةً وَفِي الْآخِرَةِ حَسَنَةً وَقِنَا عَذَابَ النَّارِ (سورة البقرة: ٢٠١)'}
+    ]},
     {slug:'judgment-day', name:'يوم الحساب', icon:'⚖️', group:'adhkar', items:[
       {title:'دعاء الحساب اليسير', text:'اللَّهُمَّ حَاسِبْنِي حِسَابًا يَسِيرًا (رواه أحمد)'}
     ]},
     {slug:'forgiveness', name:'مغفرة', icon:'🧎', group:'adhkar', items:[
-      {title:'سيد الاستغفار', text:'اللَّهُمَّ أَنْتَ رَبِّي لَا إِلَهَ إِلَّا أَنْتَ، خَلَقْتَنِي وَأَنَا عَبْدُكَ، وَأَنَا عَلَى عَهْدِكَ وَوَعْدِكَ مَا اسْتَطَعْتُ، أَعُوذُ بِكَ مِنْ شَرِّ مَا صَنَعْتُ، أَبُوءُ لَكَ بِنِعْمَتِكَ عَلَيَّ، وَأَبُوءُ بِذَنْبِي فَاغْفِرْ لِي فَإِنَّهُ لَا يَغْفِرُ الذُّنُوبَ إِلَّا أَنْتَ (رواه البخاري)'}
+      {title:'سيد الاستغفار', text:'اللَّهُمَّ أَنْتَ رَبِّي لَا إِلَهَ إِلَّا أَنْتَ، خَلَقْتَنِي وَأَنَا عَبْدُكَ، وَأَنَا عَلَى عَهْدِكَ وَوَعْدِكَ مَا اسْتَطَعْتُ، أَعُوذُ بِكَ مِنْ شَرِّ مَا صَنَعْتُ، أَبُوءُ لَكَ بِنِعْمَتِكَ عَلَيَّ، وَأَبُوءُ بِذَنْبِي فَاغْفِرْ لِي فَإِنَّهُ لَا يَغْفِرُ الذُّنُوبَ إِلَّا أَنْتَ (رواه البخاري)'},
+      {title:'دعاء للمغفرة والرحمة', text:'رَبِّ اغْفِرْ لِي وَارْحَمْنِي وَاهْدِنِي وَعَافِنِي وَارْزُقْنِي (دعاء الجلوس بين السجدتين، ويصح الدعاء به في غير الصلاة أيضًا — رواه أبو داود)'},
+      {title:'طلب المغفرة والعتق من النار', text:'اللَّهُمَّ أَجِرْنِي مِنَ النَّارِ — تُقال ٧ مرات بعد صلاة الفجر و٧ مرات بعد صلاة المغرب (رواه أبو داود)'}
     ]},
     {slug:'trust-in-allah', name:'التوكل على الله', icon:'🧎', group:'adhkar', items:[
       {title:'دعاء التوكل', text:'حَسْبُنَا اللَّهُ وَنِعْمَ الْوَكِيلُ (سورة آل عمران: ١٧٣)'},
@@ -3079,6 +3764,10 @@
       {title:'التعوذ من شر المخلوقات', text:'أَعُوذُ بِكَلِمَاتِ اللَّهِ التَّامَّاتِ مِنْ شَرِّ مَا خَلَقَ (رواه مسلم)'},
       {title:'الحفظ باسم الله', text:'بِسْمِ اللَّهِ الَّذِي لَا يَضُرُّ مَعَ اسْمِهِ شَيْءٌ فِي الْأَرْضِ وَلَا فِي السَّمَاءِ وَهُوَ السَّمِيعُ الْعَلِيمُ — تُقال ٣ مرات صباحًا ومساءً (رواه أبو داود والترمذي)'},
       {title:'التعوذ من غضب الله وشر الشياطين', text:'أَعُوذُ بِكَلِمَاتِ اللَّهِ التَّامَّاتِ مِنْ غَضَبِهِ وَعِقَابِهِ، وَشَرِّ عِبَادِهِ، وَمِنْ هَمَزَاتِ الشَّيَاطِينِ وَأَنْ يَحْضُرُونِ (رواه أبو داود)'},
+      {title:'الحماية من الشيطان', text:'أَعُوذُ بِاللَّهِ السَّمِيعِ الْعَلِيمِ مِنَ الشَّيْطَانِ الرَّجِيمِ — وقراءة آية الكرسي وخواتيم سورة البقرة عند النوم من أعظم أسباب الحفظ من الشيطان (رواه البخاري)'},
+      {title:'الحماية من الحسد', text:'المعوذتان (الفلق والناس) نزلتا خصيصًا للتعوذ من شر الحاسد إذا حسد — «قُلْ أَعُوذُ بِرَبِّ الْفَلَقِ... وَمِن شَرِّ حَاسِدٍ إِذَا حَسَدَ» (سورة الفلق: ١-٥)، وتُقرآن ٣ مرات صباحًا ومساءً'},
+      {title:'التغلب على الخوف', text:'حَسْبُنَا اللَّهُ وَنِعْمَ الْوَكِيلُ (سورة آل عمران: ١٧٣) — وأيضًا: اللَّهُمَّ إِنِّي أَعُوذُ بِكَ مِنَ الْجُبْنِ (رواه البخاري)'},
+      {title:'الحماية من الكوارث الطبيعية', text:'اللَّهُمَّ إِنِّي أَسْأَلُكَ خَيْرَهَا وَخَيْرَ مَا فِيهَا وَخَيْرَ مَا أُرْسِلَتْ بِهِ، وَأَعُوذُ بِكَ مِنْ شَرِّهَا وَشَرِّ مَا فِيهَا وَشَرِّ مَا أُرْسِلَتْ بِهِ — دعاء النبي ﷺ عند اشتداد الريح (رواه مسلم)'},
       {title:'فضل المعوذتين', text:'مَنْ قَرَأَ الْمُعَوِّذَتَيْنِ (الفلق والناس) حِينَ يُمْسِي وَحِينَ يُصْبِحُ ثَلَاثَ مَرَّاتٍ كَفَتْهُ مِنْ كُلِّ شَيْءٍ (رواه أبو داود والترمذي)'}
     ]},
     {slug:'family', name:'عائلة', icon:'👨‍👩‍👧', group:'adhkar', items:[
@@ -3093,10 +3782,14 @@
       {title:'دعاء صلاح الزوج والذرية', text:'رَبَّنَا هَبْ لَنَا مِنْ أَزْوَاجِنَا وَذُرِّيَّاتِنَا قُرَّةَ أَعْيُنٍ (سورة الفرقان: ٧٤ — تُقال لصلاح الزوجة/الزوج أيضًا)'}
     ]},
     {slug:'health-illness', name:'الصحة / المرض', icon:'🩺', group:'adhkar', items:[
-      {title:'دعاء الشفاء', text:'اللَّهُمَّ رَبَّ النَّاسِ أَذْهِبِ الْبَاسَ، اشْفِ أَنْتَ الشَّافِي، لَا شِفَاءَ إِلَّا شِفَاؤُكَ، شِفَاءً لَا يُغَادِرُ سَقَمًا (متفق عليه)'}
+      {title:'دعاء الشفاء', text:'اللَّهُمَّ رَبَّ النَّاسِ أَذْهِبِ الْبَاسَ، اشْفِ أَنْتَ الشَّافِي، لَا شِفَاءَ إِلَّا شِفَاؤُكَ، شِفَاءً لَا يُغَادِرُ سَقَمًا (متفق عليه)'},
+      {title:'دعاء بالصحة والبعد عن المرض', text:'اللَّهُمَّ إِنِّي أَسْأَلُكَ الْعَفْوَ وَالْعَافِيَةَ فِي الدُّنْيَا وَالْآخِرَةِ، اللَّهُمَّ إِنِّي أَسْأَلُكَ الْعَفْوَ وَالْعَافِيَةَ فِي دِينِي وَدُنْيَايَ وَأَهْلِي وَمَالِي (رواه أبو داود وابن ماجه)'},
+      {title:'عند رؤية من ابتُلي بمرض أو محنة', text:'الْحَمْدُ لِلَّهِ الَّذِي عَافَانِي مِمَّا ابْتَلَاكَ بِهِ، وَفَضَّلَنِي عَلَى كَثِيرٍ مِمَّنْ خَلَقَ تَفْضِيلًا — تُقال سرًّا لا يسمعها المبتلى (رواه الترمذي)'}
     ]},
-    {slug:'loss-failure', name:'الخسارة / الفشل', icon:'🪑', group:'adhkar', items:[
-      {title:'دعاء عند الشدة', text:'حَسْبِيَ اللَّهُ لَا إِلَهَ إِلَّا هُوَ عَلَيْهِ تَوَكَّلْتُ وَهُوَ رَبُّ الْعَرْشِ الْعَظِيمِ (سورة التوبة: ١٢٩)'}
+    {slug:'loss-failure', name:'الشدة والخسارة والفشل', icon:'🪑', group:'adhkar', items:[
+      {title:'دعاء عند الشدة', text:'حَسْبِيَ اللَّهُ لَا إِلَهَ إِلَّا هُوَ عَلَيْهِ تَوَكَّلْتُ وَهُوَ رَبُّ الْعَرْشِ الْعَظِيمِ (سورة التوبة: ١٢٩)'},
+      {title:'في الشدة والرخاء والكرب', text:'لَا إِلَهَ إِلَّا اللَّهُ الْعَظِيمُ الْحَلِيمُ، لَا إِلَهَ إِلَّا اللَّهُ رَبُّ الْعَرْشِ الْعَظِيمِ، لَا إِلَهَ إِلَّا اللَّهُ رَبُّ السَّمَاوَاتِ وَرَبُّ الْأَرْضِ وَرَبُّ الْعَرْشِ الْكَرِيمِ — دعاء الكرب (متفق عليه)'},
+      {title:'دعاء عند الخسارة والفشل', text:'إِنَّا لِلَّهِ وَإِنَّا إِلَيْهِ رَاجِعُونَ، اللَّهُمَّ أْجُرْنِي فِي مُصِيبَتِي وَأَخْلِفْ لِي خَيْرًا مِنْهَا (رواه مسلم)'}
     ]},
     {slug:'sadness-happiness', name:'الحزن / السعادة', icon:'🙂', group:'adhkar', items:[
       {title:'دعاء الهمّ والحزن', text:'اللَّهُمَّ إِنِّي أَعُوذُ بِكَ مِنَ الْهَمِّ وَالْحَزَنِ، وَالْعَجْزِ وَالْكَسَلِ، وَالْبُخْلِ وَالْجُبْنِ، وَضَلَعِ الدَّيْنِ وَغَلَبَةِ الرِّجَالِ (رواه البخاري)'}
@@ -3112,13 +3805,25 @@
     ]},
     // ---- متقطع ----
     {slug:'deceased', name:'المتوفى', icon:'🪦', group:'occasional', items:[
-      {title:'دعاء للميت في صلاة الجنازة', text:'اللَّهُمَّ اغْفِرْ لَهُ وَارْحَمْهُ، وَعَافِهِ وَاعْفُ عَنْهُ، وَأَكْرِمْ نُزُلَهُ وَوَسِّعْ مُدْخَلَهُ، وَاغْسِلْهُ بِالْمَاءِ وَالثَّلْجِ وَالْبَرَدِ، وَنَقِّهِ مِنَ الْخَطَايَا كَمَا يُنَقَّى الثَّوْبُ الْأَبْيَضُ مِنَ الدَّنَسِ (رواه مسلم)'}
+      {title:'دعاء للميت في صلاة الجنازة', text:'اللَّهُمَّ اغْفِرْ لَهُ وَارْحَمْهُ، وَعَافِهِ وَاعْفُ عَنْهُ، وَأَكْرِمْ نُزُلَهُ وَوَسِّعْ مُدْخَلَهُ، وَاغْسِلْهُ بِالْمَاءِ وَالثَّلْجِ وَالْبَرَدِ، وَنَقِّهِ مِنَ الْخَطَايَا كَمَا يُنَقَّى الثَّوْبُ الْأَبْيَضُ مِنَ الدَّنَسِ (رواه مسلم)'},
+      {title:'دعاء للأموات أجمعين', text:'اللَّهُمَّ اغْفِرْ لِأَحْيَائِنَا وَأَمْوَاتِنَا، وَشَاهِدِنَا وَغَائِبِنَا، وَصَغِيرِنَا وَكَبِيرِنَا، وَذَكَرِنَا وَأُنْثَانَا (رواه أبو داود والترمذي)'},
+      {title:'دعاء قبل الدخول إلى المقابر', text:'السَّلَامُ عَلَيْكُمْ أَهْلَ الدِّيَارِ مِنَ الْمُؤْمِنِينَ وَالْمُسْلِمِينَ، وَإِنَّا إِنْ شَاءَ اللَّهُ بِكُمْ لَاحِقُونَ، أَسْأَلُ اللَّهَ لَنَا وَلَكُمُ الْعَافِيَةَ (رواه مسلم)'},
+      {title:'طريقة صلاة الجنازة (مختصرة)', text:'أربع تكبيرات بلا ركوع ولا سجود: بعد التكبيرة الأولى تُقرأ الفاتحة، وبعد الثانية الصلاة الإبراهيمية، وبعد الثالثة الدعاء للميت ("اللهم اغفر له وارحمه...")، وبعد الرابعة سكتة يسيرة ثم التسليم تسليمة واحدة أو تسليمتين (رواه مسلم وأبو داود)'}
     ]},
     {slug:'hajj-umrah', name:'الحج / العمرة', icon:'🕋', group:'occasional', items:[
-      {title:'التلبية', text:'لَبَّيْكَ اللَّهُمَّ لَبَّيْكَ، لَبَّيْكَ لَا شَرِيكَ لَكَ لَبَّيْكَ، إِنَّ الْحَمْدَ وَالنِّعْمَةَ لَكَ وَالْمُلْكَ، لَا شَرِيكَ لَكَ (متفق عليه)'}
+      {title:'التلبية', text:'لَبَّيْكَ اللَّهُمَّ لَبَّيْكَ، لَبَّيْكَ لَا شَرِيكَ لَكَ لَبَّيْكَ، إِنَّ الْحَمْدَ وَالنِّعْمَةَ لَكَ وَالْمُلْكَ، لَا شَرِيكَ لَكَ (متفق عليه) — تُقال من الإحرام حتى بدء الطواف (للعمرة) أو رمي جمرة العقبة (للحج)'},
+      {title:'التكبير عند استلام الحجر الأسود', text:'بِسْمِ اللَّهِ، وَاللَّهُ أَكْبَرُ — تُقال عند بدء كل شوط من الطواف'},
+      {title:'دعاء بين الركن اليماني والحجر الأسود', text:'رَبَّنَا آتِنَا فِي الدُّنْيَا حَسَنَةً وَفِي الْآخِرَةِ حَسَنَةً وَقِنَا عَذَابَ النَّارِ (سورة البقرة: ٢٠١ — يُقال في كل شوط بين الركنين)'},
+      {title:'دعاء السعي بين الصفا والمروة', text:'إِنَّ الصَّفَا وَالْمَرْوَةَ مِن شَعَائِرِ اللَّهِ — تُقال عند الصعود على الصفا أول مرة، ثم: اللَّهُ أَكْبَرُ (×٣)، لَا إِلَهَ إِلَّا اللَّهُ وَحْدَهُ لَا شَرِيكَ لَهُ (سورة البقرة: ١٥٨، ورواه مسلم)'},
+      {title:'دعاء الوقوف بعرفة', text:'لَا إِلَهَ إِلَّا اللَّهُ وَحْدَهُ لَا شَرِيكَ لَهُ، لَهُ الْمُلْكُ وَلَهُ الْحَمْدُ، وَهُوَ عَلَى كُلِّ شَيْءٍ قَدِيرٌ — أفضل الدعاء يوم عرفة (رواه الترمذي)'},
+      {title:'التكبير والتلبية بمزدلفة ومنى', text:'اللَّهُ أَكْبَرُ، اللَّهُ أَكْبَرُ، لَا إِلَهَ إِلَّا اللَّهُ، وَاللَّهُ أَكْبَرُ، اللَّهُ أَكْبَرُ وَلِلَّهِ الْحَمْدُ — تُقال عند رمي كل جمرة'},
+      {title:'طواف الوداع', text:'لَا إِلَهَ إِلَّا اللَّهُ وَحْدَهُ لَا شَرِيكَ لَهُ، لَهُ الْمُلْكُ وَلَهُ الْحَمْدُ وَهُوَ عَلَى كُلِّ شَيْءٍ قَدِيرٌ، آيِبُونَ تَائِبُونَ عَابِدُونَ سَاجِدُونَ لِرَبِّنَا حَامِدُونَ، صَدَقَ اللَّهُ وَعْدَهُ، وَنَصَرَ عَبْدَهُ، وَهَزَمَ الْأَحْزَابَ وَحْدَهُ (رواه مسلم)'}
     ]},
     {slug:'ramadan', name:'رمضان', icon:'🌙', group:'occasional', items:[
-      {title:'دعاء الإفطار', text:'ذَهَبَ الظَّمَأُ، وَابْتَلَّتِ الْعُرُوقُ، وَثَبَتَ الْأَجْرُ إِنْ شَاءَ اللَّهُ (رواه أبو داود)'}
+      {title:'عند بداية الصوم (النية)', text:'محلّها القلب — أن ينوي المسلم صيام اليوم لله تعالى قبل الفجر، ولا يُشترط النطق بها (اتفاق العلماء على أن الأصل في النية القلب)'},
+      {title:'دعاء الإفطار', text:'ذَهَبَ الظَّمَأُ، وَابْتَلَّتِ الْعُرُوقُ، وَثَبَتَ الْأَجْرُ إِنْ شَاءَ اللَّهُ (رواه أبو داود)'},
+      {title:'دعاء ليلة القدر', text:'اللَّهُمَّ إِنَّكَ عَفُوٌّ تُحِبُّ الْعَفْوَ فَاعْفُ عَنِّي — علّمه النبي ﷺ لعائشة رضي الله عنها لقولها إذا وافقت ليلة القدر (رواه الترمذي وابن ماجه)'},
+      {title:'عند رؤية هلال رمضان', text:'اللَّهُ أَكْبَرُ، اللَّهُمَّ أَهِلَّهُ عَلَيْنَا بِالْأَمْنِ وَالْإِيمَانِ، وَالسَّلَامَةِ وَالْإِسْلَامِ، رَبِّي وَرَبُّكَ اللَّهُ (رواه الترمذي)'}
     ]},
     {slug:'nature', name:'طبيعة', icon:'🌳', group:'occasional', items:[
       {title:'دعاء عند نزول المطر', text:'اللَّهُمَّ صَيِّبًا نَافِعًا (رواه البخاري)'}
@@ -3520,6 +4225,56 @@
   }
 
   /* ================= شاشة "تقويم" — عرض هجري/ميلادي حقيقي + حاسبة تحويل ثنائية الاتجاه ================= */
+  /* ================= تقويم رمضان القابل للطباعة — بيستخدم نفس محرك التحويل الهجري/الميلادي الحقيقي
+     (hijriToGregorian) اللي شغال أصلًا في التقويم العادي، مش تواريخ ثابتة مكتوبة يدويًا. =================*/
+  let ramadanPrintSize = 'A4';
+  function setRamadanPrintSize(size, el){
+    selChip(el);
+    ramadanPrintSize = size;
+  }
+  function openRamadanCalendar(){
+    activate('ramadan-calendar');
+    renderRamadanCalendar();
+  }
+  function renderRamadanCalendar(){
+    const hy = 1448;
+    const days = hijriMonthLength(hy, 9); // ٩ = رمضان
+    const yearLabelEl = document.getElementById('ramadan-hijri-year-label');
+    const startG = hijriToGregorian(hy, 9, 1);
+    const endG = hijriToGregorian(hy, 9, days);
+    if(yearLabelEl){
+      yearLabelEl.textContent = `١٤٤٨ هـ — من ${toArabicDigits(startG.gd)} ${gregorianMonthsAr[startG.gm-1]} إلى ${toArabicDigits(endG.gd)} ${gregorianMonthsAr[endG.gm-1]} ${toArabicDigits(endG.gy)} م (تقريبي، حسب رؤية الهلال)`;
+    }
+    const weekdayNamesShort = ['أحد','اثنين','ثلاثاء','أربعاء','خميس','جمعة','سبت'];
+    let rows = `<tr><th>يوم رمضان</th><th>التاريخ الميلادي</th><th>اليوم</th><th>☐ صيام</th><th>☐ قيام</th></tr>`;
+    for(let d = 1; d <= days; d++){
+      const g = hijriToGregorian(hy, 9, d);
+      const jsDate = new Date(g.gy, g.gm - 1, g.gd);
+      const wd = jsDate.getDay();
+      const isFriday = wd === 5;
+      rows += `<tr class="${isFriday ? 'rm-friday' : ''}">
+        <td class="rm-day">${toArabicDigits(d)}</td>
+        <td>${toArabicDigits(g.gd)} ${gregorianMonthsAr[g.gm-1]} ${toArabicDigits(g.gy)}</td>
+        <td>${weekdayNamesShort[wd]}</td>
+        <td>☐</td>
+        <td>☐</td>
+      </tr>`;
+    }
+    const tableEl = document.getElementById('ramadan-table');
+    if(tableEl) tableEl.innerHTML = rows;
+  }
+  function printRamadanCalendar(){
+    // بنولّد <style> مؤقت بحجم الصفحة المطلوب (A4/A3) وقت الطباعة فعليًا، لإن CSS مش بيسمح بتغيير حجم
+    // الصفحة ديناميكيًا غير كده — وبنشيله بعد الطباعة عشان ميأثرش على أي طباعة تانية بعدين.
+    const styleEl = document.createElement('style');
+    styleEl.id = 'ramadan-dynamic-page-size';
+    styleEl.textContent = `@page{ size:${ramadanPrintSize}; margin:14mm; }`;
+    document.head.appendChild(styleEl);
+    setTimeout(() => {
+      window.print();
+      setTimeout(() => { const s = document.getElementById('ramadan-dynamic-page-size'); if(s) s.remove(); }, 500);
+    }, 50);
+  }
   const calState = { type: 'hijri' };
   const todayForCal = new Date();
   const todayHijriForCal = hijriFromDate(todayForCal);
@@ -3914,6 +4669,42 @@
      محرك النطق العربي الأصلي المثبّت على أندرويد (عادة Google TTS)، عشان نقدر ننطق اسم المستخدم الحقيقي مهما
      كان الاسم، وده مستحيل يتحقق بملف صوتي مسجّل مسبقًا. بتتنادى لما يخلّص تسجيل بياناته وكل مرة يفتح فيها
      التطبيق بعد كده. */
+  // بيدوّر على أفضل صوت عربي متاح فعليًا على جهاز المستخدم (مش صوت واحد ثابت لإننا مش بنسجّل صوت حقيقي هنا،
+  // ده محرك نطق النظام نفسه) — بيفضّل الأصوات "الشبكية/المحسّنة" (زي Google العربية) لو موجودة، لأنها بتبقى
+  // أوضح وأطبع من الصوت المحلي الأساسي (Compact) اللي بيبقى غالبًا هو سبب الشكوى من "صوت المتحدث السيئ".
+  function pickBestArabicVoice(){
+    if(!window.speechSynthesis) return null;
+    let voices = window.speechSynthesis.getVoices() || [];
+    const arVoices = voices.filter(v => (v.lang || '').toLowerCase().startsWith('ar'));
+    if(!arVoices.length) return null;
+    const score = v => {
+      let s = 0;
+      if(/google/i.test(v.name)) s += 3;
+      if(/enhanced|premium|natural|neural/i.test(v.name)) s += 3;
+      if(!v.localService) s += 2; // الأصوات الشبكية غالبًا أعلى جودة من المحلية المضغوطة
+      if(/sa|SA/.test(v.lang)) s += 1; // تفضيل اللهجة السعودية (الأقرب لنطق القرآن/الأذكار الفصيح)
+      return s;
+    };
+    return arVoices.sort((a,b) => score(b) - score(a))[0];
+  }
+  function applyBestArabicVoiceThenSpeak(utter){
+    let spoken = false;
+    const doSpeak = () => {
+      if(spoken) return;
+      spoken = true;
+      const v = pickBestArabicVoice();
+      if(v) utter.voice = v;
+      window.speechSynthesis.cancel();
+      window.speechSynthesis.speak(utter);
+    };
+    if(window.speechSynthesis.getVoices().length === 0){
+      window.speechSynthesis.addEventListener('voiceschanged', doSpeak, {once:true});
+      // مهلة أمان: لو الحدث اتأخر أو مانداش خالص على بعض الأجهزة، ننطق بالصوت الافتراضي بدل ما نفضل ساكتين
+      setTimeout(doSpeak, 600);
+    } else {
+      doSpeak();
+    }
+  }
   function speakWelcome(profile){
     try{
       if(!window.speechSynthesis || typeof SpeechSynthesisUtterance === 'undefined') return;
@@ -3921,9 +4712,9 @@
       const rel = profile.gender === 'female' ? 'أختي' : 'أخوي';
       const utter = new SpeechSynthesisUtterance(`السلام عليكم ورحمة الله وبركاته، ${rel} ${profile.name}`);
       utter.lang = 'ar-SA';
-      utter.rate = 0.95;
-      window.speechSynthesis.cancel(); // نلغي أي نطق سابق لسه شغال عشان الأصوات ما تتراكمش فوق بعض
-      window.speechSynthesis.speak(utter);
+      utter.rate = 0.92;
+      utter.pitch = 1.0;
+      applyBestArabicVoiceThenSpeak(utter);
     }catch(e){
       // فشل النطق الصوتي (مثلاً الجهاز مفيهوش محرك عربي مثبّت) مش لازم يوقف التطبيق — الترحيب المكتوب فاضل ظاهر عادي
     }
