@@ -429,14 +429,15 @@
 
   /* ---- QIBLA ---- */
   .qibla-wrap{ display:flex; flex-direction:column; align-items:center; padding-top:14px;}
-  .compass{ width:210px; height:210px; border-radius:50%; border:1px solid var(--line); background:radial-gradient(circle at 50% 40%, var(--green-tint), var(--card) 75%); position:relative; display:flex; align-items:center; justify-content:center; margin-bottom:20px; box-shadow:0 4px 20px rgba(46,46,46,0.06), inset 0 0 0 1px rgba(200,169,90,0.15);}
+  .compass{ width:210px; height:210px; border-radius:50%; border:1px solid var(--line); background:radial-gradient(circle at 50% 40%, var(--green-tint), var(--card) 75%); position:relative; display:flex; align-items:center; justify-content:center; margin-bottom:20px; box-shadow:0 4px 20px rgba(46,46,46,0.06), inset 0 0 0 1px rgba(200,169,90,0.15); transition:box-shadow .3s ease;}
+  .compass.qibla-aligned{ box-shadow:0 0 0 4px rgba(200,169,90,0.35), 0 0 30px 8px rgba(200,169,90,0.5), inset 0 0 0 1px rgba(200,169,90,0.4); }
   .compass::before{ content:''; position:absolute; inset:14px; border-radius:50%; border:1px dashed rgba(200,169,90,0.5);}
   .compass-tick{ position:absolute; font-size:10px; font-weight:700; color:var(--text-dim); font-family:'Cairo',sans-serif; }
   .compass-tick.n{ top:6px; left:50%; transform:translateX(-50%); color:var(--gold); }
   .compass-tick.s{ bottom:6px; left:50%; transform:translateX(-50%); }
   .compass-tick.e{ top:50%; right:6px; transform:translateY(-50%); }
   .compass-tick.w{ top:50%; left:6px; transform:translateY(-50%); }
-  .compass-pointer{ position:absolute; inset:0; transform-origin:center center; transition:transform .18s ease-out; will-change:transform; }
+  .compass-pointer{ position:absolute; inset:0; transform-origin:center center; transition:transform .5s cubic-bezier(0.22, 0.61, 0.36, 1); will-change:transform; }
   .kaaba{ width:34px; height:34px; position:absolute; top:12px; left:50%; transform:translateX(-50%); filter:drop-shadow(0 2px 6px rgba(200,169,90,0.45)); }
   .needle{ width:3px; height:82px; background:linear-gradient(var(--gold), transparent); position:absolute; bottom:50%; left:50%; transform-origin:bottom center; transform:translateX(-50%); border-radius:2px;}
   .compass-center-dot{ width:8px; height:8px; border-radius:50%; background:var(--gold); position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); box-shadow:0 0 0 3px var(--card);}
@@ -2374,8 +2375,10 @@
     return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
   }
   let qiblaBearingDeg = null;   // اتجاه القبلة الحقيقي بالنسبة للشمال (من GPS) — ثابت طول ما موقع المستخدم ثابت
-  let deviceHeadingDeg = 0;     // الاتجاه اللي الموبايل موجّه له دلوقتي بالنسبة للشمال (من الكمباس الحي)
+  let deviceHeadingDeg = 0;     // آخر قراءة خام من حساس البوصلة (فيها رعشة/ضوضاء طبيعية)
+  let smoothedHeadingDeg = null; // نفس القراءة بعد تنعيمها — ده اللي فعليًا بيتحرك بيه المؤشر، عشان تكون الحركة هادئة مش قافزة
   let qiblaCompassActive = false;
+  let qiblaAligned = false;
   function updateQiblaUI(){
     const degEl = document.getElementById('qibla-deg');
     const distEl = document.getElementById('qibla-distance');
@@ -2398,8 +2401,24 @@
   function applyQiblaPointerRotation(){
     const pointer = document.getElementById('qibla-pointer');
     if(!pointer || qiblaBearingDeg === null) return;
-    const relative = qiblaCompassActive ? (qiblaBearingDeg - deviceHeadingDeg + 360) % 360 : qiblaBearingDeg;
+    const heading = qiblaCompassActive ? (smoothedHeadingDeg === null ? deviceHeadingDeg : smoothedHeadingDeg) : 0;
+    const relative = qiblaCompassActive ? (qiblaBearingDeg - heading + 360) % 360 : qiblaBearingDeg;
     pointer.style.transform = `rotate(${relative}deg)`;
+    // لما الاتجاه يستقر قريب جدًا من القبلة (فرق أقل من ٣ درجات)، نبرز ده بصريًا (توهج ذهبي + نبضة اهتزاز خفيفة)
+    // بدل ما يفضل المستخدم مش متأكد هل هو واقف صح فعلًا ولا لأ
+    const diff = Math.min(relative, 360 - relative);
+    const aligned = diff < 3;
+    if(aligned !== qiblaAligned){
+      qiblaAligned = aligned;
+      const compassEl = document.querySelector('.compass');
+      if(compassEl) compassEl.classList.toggle('qibla-aligned', aligned);
+      if(aligned) vibrateShort();
+    }
+  }
+  function vibrateShort(){
+    try{
+      if(navigator.vibrate) navigator.vibrate(40);
+    }catch(e){ /* بعض الأجهزة/المتصفحات مش بتدعم الاهتزاز — مش مشكلة، نتجاهلها بهدوء */ }
   }
   function maybeShowQiblaCompassButton(){
     const btn = document.getElementById('qibla-compass-btn');
@@ -2439,6 +2458,15 @@
     }
     if(heading === null || isNaN(heading)) return;
     deviceHeadingDeg = heading;
+    // تنعيم القراءة بدل ما نتحرك فورًا لآخر رقم خام — ده اللي بيخلي حركة المؤشر هادئة وبطيئة بدل القفز السريع.
+    // بنحسب أقصر مسافة زاوية (عشان الالتفاف حوالين ٣٦٠°/٠° ما يعملش لفة كاملة غلط)، وبنتحرك ١٠٪ منها بس في كل قراءة.
+    if(smoothedHeadingDeg === null){
+      smoothedHeadingDeg = heading;
+    } else {
+      let delta = heading - smoothedHeadingDeg;
+      delta = ((delta + 180) % 360 + 360) % 360 - 180; // أقصر مسافة زاوية بين -180 و+180
+      smoothedHeadingDeg = (smoothedHeadingDeg + delta * 0.1 + 360) % 360;
+    }
     applyQiblaPointerRotation();
   }
   function updateLocationUI(city, country){
