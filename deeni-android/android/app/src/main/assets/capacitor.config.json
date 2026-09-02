@@ -1,0 +1,8 @@
+{
+	"appId": "com.deeni.app",
+	"appName": "إسلاميات",
+	"webDir": "www",
+	"server": {
+		"androidScheme": "https"
+	}
+}
