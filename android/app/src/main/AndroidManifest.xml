@@ -35,4 +35,8 @@
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <!-- إصلاح (دفعة ٢٨): بدون هذه الصلاحية، أندرويد ١٢+ بيرفض التنبيهات الدقيقة (Exact Alarms) بصمت، وده كان
+         سبب إضافي محتمل وراء تأخر/فشل تنبيه أذان الفجر تحديدًا. مناسبة تمامًا لتطبيق مواقيت صلاة/منبّه. -->
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
+    <uses-permission android:name="android.permission.USE_EXACT_ALARM" />
 </manifest>
