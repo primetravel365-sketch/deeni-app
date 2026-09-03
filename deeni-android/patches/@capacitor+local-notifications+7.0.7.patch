@@ -1,3 +1,24 @@
+diff --git a/node_modules/@capacitor/local-notifications/android/src/main/java/com/capacitorjs/plugins/localnotifications/NotificationChannelManager.java b/node_modules/@capacitor/local-notifications/android/src/main/java/com/capacitorjs/plugins/localnotifications/NotificationChannelManager.java
+index b2ea880..77975d7 100644
+--- a/node_modules/@capacitor/local-notifications/android/src/main/java/com/capacitorjs/plugins/localnotifications/NotificationChannelManager.java
++++ b/node_modules/@capacitor/local-notifications/android/src/main/java/com/capacitorjs/plugins/localnotifications/NotificationChannelManager.java
+@@ -93,9 +93,15 @@ public class NotificationChannelManager {
+                 if (sound.contains(".")) {
+                     sound = sound.substring(0, sound.lastIndexOf('.'));
+                 }
++                // إصلاح (دفعة ٣١ — تطبيق ديني): كان استخدام الصوت هنا مربوط بـ USAGE_NOTIFICATION،
++                // ودي بتشغّل الصوت على "مستوى صوت الإشعارات" في أندرويد — وهو غالبًا مكتوم أو منخفض
++                // على أجهزة كتير (خصوصًا هواوي/شاومي وغيرها)، ومش مستثنى من وضع "عدم الإزعاج".
++                // غيّرناه لـ USAGE_ALARM عشان صوت الأذان يشتغل على "مستوى صوت المنبّه" اللي بيفضل
++                // شغّال وواضح على كل الأجهزة تقريبًا حتى لو الإشعارات نفسها مكتومة، وده اللي بيفسّر
++                // ظهور إشعار الأذان بدون صوت رغم إن كل إعدادات الجدولة صح.
+                 AudioAttributes audioAttributes = new AudioAttributes.Builder()
+                     .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+-                    .setUsage(AudioAttributes.USAGE_NOTIFICATION)
++                    .setUsage(AudioAttributes.USAGE_ALARM)
+                     .build();
+                 Uri soundUri = Uri.parse(ContentResolver.SCHEME_ANDROID_RESOURCE + "://" + context.getPackageName() + "/raw/" + sound);
+                 notificationChannel.setSound(soundUri, audioAttributes);
 diff --git a/node_modules/@capacitor/local-notifications/android/src/main/java/com/capacitorjs/plugins/localnotifications/TimedNotificationPublisher.java b/node_modules/@capacitor/local-notifications/android/src/main/java/com/capacitorjs/plugins/localnotifications/TimedNotificationPublisher.java
 index 0a5c0ad..a83bb9f 100644
 --- a/node_modules/@capacitor/local-notifications/android/src/main/java/com/capacitorjs/plugins/localnotifications/TimedNotificationPublisher.java
