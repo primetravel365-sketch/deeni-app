@@ -39,4 +39,8 @@
          سبب إضافي محتمل وراء تأخر/فشل تنبيه أذان الفجر تحديدًا. مناسبة تمامًا لتطبيق مواقيت صلاة/منبّه. -->
     <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
     <uses-permission android:name="android.permission.USE_EXACT_ALARM" />
+    <!-- إضافة (دفعة ٣٠): تسمح للتطبيق يفتح نافذة نظام أندرويد الرسمية لاستثناء نفسه من توفير البطارية —
+         سبب شائع جدًا وراء توقف تنبيهات الأذان في الخلفية على أجهزة كتير (شاومي/أوبو/هواوي وغيرها) حتى
+         لو الجدولة نفسها مضبوطة صح بالكامل في الكود. -->
+    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
 </manifest>
