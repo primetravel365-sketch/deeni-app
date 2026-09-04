@@ -1,3 +1,42 @@
+diff --git a/node_modules/@capacitor/local-notifications/android/src/main/java/com/capacitorjs/plugins/localnotifications/NotificationChannelManager.java b/node_modules/@capacitor/local-notifications/android/src/main/java/com/capacitorjs/plugins/localnotifications/NotificationChannelManager.java
+index b2ea880..c4dcbf7 100644
+--- a/node_modules/@capacitor/local-notifications/android/src/main/java/com/capacitorjs/plugins/localnotifications/NotificationChannelManager.java
++++ b/node_modules/@capacitor/local-notifications/android/src/main/java/com/capacitorjs/plugins/localnotifications/NotificationChannelManager.java
+@@ -90,14 +90,29 @@ public class NotificationChannelManager {
+             }
+             String sound = channel.getString(CHANNEL_SOUND, null);
+             if (sound != null && !sound.isEmpty()) {
+-                if (sound.contains(".")) {
+-                    sound = sound.substring(0, sound.lastIndexOf('.'));
+-                }
++                // إصلاح (دفعة ٣١ — تطبيق ديني): كان استخدام الصوت هنا مربوط بـ USAGE_NOTIFICATION،
++                // ودي بتشغّل الصوت على "مستوى صوت الإشعارات" في أندرويد — وهو غالبًا مكتوم أو منخفض
++                // على أجهزة كتير (خصوصًا هواوي/شاومي وغيرها)، ومش مستثنى من وضع "عدم الإزعاج".
++                // غيّرناه لـ USAGE_ALARM عشان صوت الأذان يشتغل على "مستوى صوت المنبّه" اللي بيفضل
++                // شغّال وواضح على كل الأجهزة تقريبًا حتى لو الإشعارات نفسها مكتومة، وده اللي بيفسّر
++                // ظهور إشعار الأذان بدون صوت رغم إن كل إعدادات الجدولة صح.
+                 AudioAttributes audioAttributes = new AudioAttributes.Builder()
+                     .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+-                    .setUsage(AudioAttributes.USAGE_NOTIFICATION)
++                    .setUsage(AudioAttributes.USAGE_ALARM)
+                     .build();
+-                Uri soundUri = Uri.parse(ContentResolver.SCHEME_ANDROID_RESOURCE + "://" + context.getPackageName() + "/raw/" + sound);
++                Uri soundUri;
++                // إضافة (دفعة ٣٥): لو النص المُمرَّر بالفعل رابط content:// كامل (صوت مؤذن حقيقي متنزّل على
++                // الجهاز ومسجّل عن طريق AzanSoundPlugin)، نستخدمه زي ما هو من غير أي تعديل. غير كده (السلوك
++                // الافتراضي القديم) بنفترض إنه اسم ملف raw resource مُضمَّن جوه التطبيق زي ما كان دايمًا.
++                if (sound.startsWith("content://")) {
++                    soundUri = Uri.parse(sound);
++                } else {
++                    String rawName = sound;
++                    if (rawName.contains(".")) {
++                        rawName = rawName.substring(0, rawName.lastIndexOf('.'));
++                    }
++                    soundUri = Uri.parse(ContentResolver.SCHEME_ANDROID_RESOURCE + "://" + context.getPackageName() + "/raw/" + rawName);
++                }
+                 notificationChannel.setSound(soundUri, audioAttributes);
+             }
+             notificationManager.createNotificationChannel(notificationChannel);
 diff --git a/node_modules/@capacitor/local-notifications/android/src/main/java/com/capacitorjs/plugins/localnotifications/TimedNotificationPublisher.java b/node_modules/@capacitor/local-notifications/android/src/main/java/com/capacitorjs/plugins/localnotifications/TimedNotificationPublisher.java
 index 0a5c0ad..a83bb9f 100644
 --- a/node_modules/@capacitor/local-notifications/android/src/main/java/com/capacitorjs/plugins/localnotifications/TimedNotificationPublisher.java
