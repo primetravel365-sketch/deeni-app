@@ -65,4 +65,41 @@ public class AzanSoundPlugin extends Plugin {
             call.reject("failed to build content uri: " + e.getMessage());
         }
     }
+
+    /**
+     * إضافة (دفعة ٦٣): جدولة تشغيل الأذان الكامل فعليًا وقت الصلاة عبر منبّه دقيق مستقل (AlarmManager) +
+     * خدمة أمامية بتشغّل الصوت بـMediaPlayer — بديل عن "صوت قناة إشعار" اللي كان بيتوقف تلقائيًا بعد
+     * ثواني قليلة (السبب الحقيقي وراء توقف الأذان بعد "الله أكبر الله أكبر" بس).
+     */
+    @PluginMethod
+    public void scheduleFullAzan(PluginCall call) {
+        try {
+            String key = call.getString("key");
+            String name = call.getString("name", key);
+            Integer hour = call.getInt("hour");
+            Integer minute = call.getInt("minute");
+            Integer second = call.getInt("second", 0);
+            String soundType = call.getString("soundType");
+            String source = call.getString("source");
+            if (key == null || hour == null || minute == null || source == null) {
+                call.reject("missing required params");
+                return;
+            }
+            AzanScheduler.schedule(getContext(), key, name, hour, minute, second == null ? 0 : second, soundType, source);
+            call.resolve();
+        } catch (Exception e) {
+            call.reject("failed to schedule full azan: " + e.getMessage());
+        }
+    }
+
+    /** إضافة (دفعة ٦٣): إلغاء كل منبّهات الأذان الكامل الخمسة المجدوَلة — يُستدعى قبل إعادة الجدولة. */
+    @PluginMethod
+    public void cancelAllFullAzan(PluginCall call) {
+        try {
+            AzanScheduler.cancelAll(getContext());
+            call.resolve();
+        } catch (Exception e) {
+            call.reject("failed to cancel full azan: " + e.getMessage());
+        }
+    }
 }

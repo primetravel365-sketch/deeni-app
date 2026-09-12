@@ -27,6 +27,29 @@
             android:grantUriPermissions="true">
             <meta-data android:name="android.support.FILE_PROVIDER_PATHS" android:resource="@xml/file_paths" />
         </provider>
+
+        <!-- إضافة (دفعة ٦٣): خدمة أمامية بتشغّل صوت الأذان الكامل فعليًا بـMediaPlayer مستقل، بديل عن صوت
+             قناة الإشعار اللي أندرويد كان بيوقفه تلقائيًا بعد ثواني قليلة بس (سبب توقف الأذان بعد "الله
+             أكبر الله أكبر" في كل الصلوات). -->
+        <service
+            android:name=".AzanPlaybackService"
+            android:exported="false"
+            android:foregroundServiceType="mediaPlayback" />
+
+        <!-- إضافة (دفعة ٦٣): يستقبل منبّه الأذان الدقيق وقت دخول وقت الصلاة ويبدأ خدمة التشغيل. -->
+        <receiver
+            android:name=".AzanAlarmReceiver"
+            android:exported="false" />
+
+        <!-- إضافة (دفعة ٦٣): يعيد ضبط منبّهات الأذان الكامل الخمسة بعد إعادة تشغيل الجهاز (AlarmManager
+             بيمسح كل المنبّهات المجدوَلة عند إعادة التشغيل). -->
+        <receiver
+            android:name=".BootReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+            </intent-filter>
+        </receiver>
     </application>
 
     <!-- Permissions -->
@@ -43,4 +66,11 @@
          سبب شائع جدًا وراء توقف تنبيهات الأذان في الخلفية على أجهزة كتير (شاومي/أوبو/هواوي وغيرها) حتى
          لو الجدولة نفسها مضبوطة صح بالكامل في الكود. -->
     <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
+    <!-- إضافة (دفعة ٦٣): مطلوبة لتشغيل الخدمة الأمامية اللي بتشغّل الأذان الكامل (Android 9+ بشكل عام،
+         وإلزامية بنوع "mediaPlayback" تحديدًا من Android 14/API 34 فصاعدًا). -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
+    <!-- إضافة (دفعة ٦٣): تسمح بإعادة ضبط منبّهات الأذان الكامل تلقائيًا بعد إعادة تشغيل الجهاز. -->
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
 </manifest>
