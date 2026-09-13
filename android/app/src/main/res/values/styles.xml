@@ -15,8 +15,20 @@
         <item name="android:background">@null</item>
     </style>
 
+    <!-- تعديل (دفعة ٤٨): كانت الخلفية @drawable/splash (صورة أيقونة التطبيق) وكانت بتظهر
+         قبل شاشة البداية المتحركة. بقت لون داكن مطابق لخلفية الشاشة المتحركة، والأيقونة
+         بقت شفافة على أندرويد ١٢+ — فالتطبيق بيفتح على الشاشة المتحركة مباشرةً.
 
+         إصلاح حقيقي إضافي (دفعة ٦٤): العنصر اللي كان مكتوب هنا فعليًا كان "android:background" —
+         وده خاصية View عادية، مالهاش أي تأثير على "نافذة البداية" (Starting Window) اللي أندرويد
+         بيرسمها فورًا لحظة الضغط على الأيقونة، قبل ما أي كود بتاعنا يتنفذ خالص. الخاصية الصحيحة
+         اللي أندرويد بيستخدمها فعليًا لرسم خلفية نافذة البداية دي هي "android:windowBackground" —
+         وطالما هي مش موجودة، أندرويد كان بيرجع لسلوكه الافتراضي (عرض أيقونة التطبيق) في اللحظة
+         دي بالذات، حتى بعد إصلاح دفعة ٥٨ (installSplashScreen) لأن الإصلاح ده بيتحكم في مرحلة
+         تانية تالية، مش في نافذة البداية الأولى. -->
     <style name="AppTheme.NoActionBarLaunch" parent="Theme.SplashScreen">
-        <item name="android:background">@drawable/splash</item>
+        <item name="android:windowBackground">@color/splash_bg</item>
+        <item name="windowSplashScreenBackground">@color/splash_bg</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/splash_transparent</item>
     </style>
 </resources>
