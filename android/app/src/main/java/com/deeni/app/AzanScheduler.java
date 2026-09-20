@@ -10,16 +10,10 @@ import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * دفعة ٦٣: مجدوِل الأذان الكامل — بديل عن الاعتماد على "صوت قناة إشعار" (اللي أندرويد بيوقفه تلقائيًا
- * بعد ثواني قليلة). هنا كل صلاة بتاخد منبّه دقيق (AlarmManager.setExactAndAllowWhileIdle) مستقل تمامًا
- * عن أي إشعار، وبيعيد جدولة نفسه تلقائيًا لليوم التالي فور إطلاقه (AzanAlarmReceiver)، وبيتحفظ في
- * SharedPreferences عشان BootReceiver يقدر يعيد ضبطه لو الجهاز اتقفل وبدأ من جديد (إعادة التشغيل بتمسح
- * أي منبّه AlarmManager مجدوَل).
- */
 class AzanScheduler {
 
     private static final String PREFS = "deeni_azan_full_schedule_v1";
+    private static final String LOC_PREFS = "deeni_azan_location_v1";
 
     private static final Map<String, Integer> REQUEST_CODES = new HashMap<>();
     static {
@@ -30,6 +24,13 @@ class AzanScheduler {
         REQUEST_CODES.put("isha", 9005);
     }
 
+    static void persistLocation(Context context, double lat, double lon, int method) {
+        try {
+            SharedPreferences sp = context.getSharedPreferences(LOC_PREFS, Context.MODE_PRIVATE);
+            sp.edit().putFloat("lat", (float) lat).putFloat("lon", (float) lon).putInt("method", method).apply();
+        } catch (Exception ignore) {}
+    }
+
     static void schedule(Context context, String key, String name, int hour, int minute, int second, String soundType, String source) {
         Integer reqCode = REQUEST_CODES.get(key);
         if (reqCode == null) return;
@@ -37,10 +38,42 @@ class AzanScheduler {
         armAlarm(context, reqCode, key, name, hour, minute, second, soundType, source);
     }
 
-    static void rescheduleNextDay(Context context, String key, String name, int hour, int minute, int second, String soundType, String source) {
-        Integer reqCode = REQUEST_CODES.get(key);
-        if (reqCode == null) return;
-        armAlarm(context, reqCode, key, name, hour, minute, second, soundType, source);
+    /** يعيد جدولة الصلاة القادمة (غدًا عادة) بحساب الوقت الحقيقي محليًا بدل تكرار نفس الساعة القديمة. */
+    static void rescheduleWithRecalculation(Context context, String key, String name, String soundType, String source) {
+        try {
+            SharedPreferences loc = context.getSharedPreferences(LOC_PREFS, Context.MODE_PRIVATE);
+            if (!loc.contains("lat")) {
+                // لا يوجد موقع محفوظ بعد (أول تشغيل قبل أي مزامنة) — رجوع للسلوك القديم كحل احتياطي
+                return;
+            }
+            double lat = loc.getFloat("lat", 0f);
+            double lon = loc.getFloat("lon", 0f);
+            int method = loc.getInt("method", 16);
+
+            Calendar cal = Calendar.getInstance();
+            cal.add(Calendar.DAY_OF_YEAR, 1); // نحسب لبكرة لأن ده بينادى بعد ما أذان اليوم يخلص
+            double tz = PrayTimeCalculator.timezoneOffsetHours(cal);
+
+            PrayTimeCalculator.Times times = PrayTimeCalculator.compute(
+                    cal.get(Calendar.YEAR), cal.get(Calendar.MONTH) + 1, cal.get(Calendar.DAY_OF_MONTH),
+                    lat, lon, tz, method, 1);
+
+            double decimalTime;
+            switch (key) {
+                case "fajr": decimalTime = times.fajr; break;
+                case "dhuhr": decimalTime = times.dhuhr; break;
+                case "asr": decimalTime = times.asr; break;
+                case "maghrib": decimalTime = times.maghrib; break;
+                case "isha": decimalTime = times.isha; break;
+                default: return;
+            }
+            int[] hms = PrayTimeCalculator.hms(decimalTime);
+            persist(context, key, name, hms[0], hms[1], hms[2], soundType, source);
+            Integer reqCode = REQUEST_CODES.get(key);
+            if (reqCode != null) armAlarm(context, reqCode, key, name, hms[0], hms[1], hms[2], soundType, source);
+        } catch (Exception ignore) {
+            // في حال أي خطأ حسابي غير متوقع، لا نكسر التطبيق — الجدولة القادمة عبر فتح التطبيق ستُصحّح الوضع
+        }
     }
 
     static void rearmAllFromPersisted(Context context) {

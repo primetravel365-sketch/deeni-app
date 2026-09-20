@@ -32,6 +32,10 @@ import java.io.File;
  * ⚠️ ملحوظة أمانة: التعديل ده جديد كليًا ومافيش جهاز أندرويد حقيقي متاح للاختبار عليه قبل الإرسال — كل خطوة
  * هنا ملفوفة بمعالجة أخطاء كاملة (try/catch) فالأسوأ اللي ممكن يحصل لو فيه مشكلة (صلاحيات، توافق إصدار أندرويد
  * قديم، إلخ) هو رجوع تلقائي للسلوك القديم (الإعلان الصوتي القصير) من غير أي عطل أو تعليق في التطبيق.
+ *
+ * تعديل لاحق (إصلاح انحراف الأذان الكامل): scheduleFullAzan بقت تستقبل latitude/longitude/method
+ * كمان وتحفظهم عبر AzanScheduler.persistLocation، عشان الجدولة اليومية التلقائية (AzanAlarmReceiver)
+ * تقدر تحسب وقت الصلاة الحقيقي لبكرة بنفسها من غير ما تحتاج فتح التطبيق.
  */
 @CapacitorPlugin(name = "AzanSound")
 public class AzanSoundPlugin extends Plugin {
@@ -81,9 +85,15 @@ public class AzanSoundPlugin extends Plugin {
             Integer second = call.getInt("second", 0);
             String soundType = call.getString("soundType");
             String source = call.getString("source");
+            Double lat = call.getDouble("latitude");
+            Double lon = call.getDouble("longitude");
+            Integer method = call.getInt("method");
             if (key == null || hour == null || minute == null || source == null) {
                 call.reject("missing required params");
                 return;
+            }
+            if (lat != null && lon != null) {
+                AzanScheduler.persistLocation(getContext(), lat, lon, method == null ? 16 : method);
             }
             AzanScheduler.schedule(getContext(), key, name, hour, minute, second == null ? 0 : second, soundType, source);
             call.resolve();
