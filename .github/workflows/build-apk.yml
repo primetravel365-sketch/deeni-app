@@ -22,6 +22,9 @@ jobs:
       - name: Install npm dependencies
         run: npm install
 
+      - name: Validate Quran radio and nearby-mosque JavaScript
+        run: node --check www/islamiyat-enhancements.js
+
       - name: Apply verified review fixes to large web bundle
         run: node scripts/patch-review-web.cjs
 
