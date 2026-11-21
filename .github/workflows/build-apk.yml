@@ -2,7 +2,7 @@ name: بناء تطبيق أندرويد (APK)
 
 on:
   push:
-    branches: [ main, master, 'review/islamiyat-github-integration-20261121' ]
+    branches: [ main, master, 'review/islamiyat-github-integration-20261121', 'review/islamiyat-combined-nov2026' ]
   workflow_dispatch: {}
 
 jobs:
@@ -21,6 +21,9 @@ jobs:
 
       - name: Install npm dependencies
         run: npm install
+
+      - name: Apply verified review fixes to large web bundle
+        run: node scripts/patch-review-web.cjs
 
       - name: Copy web assets into Android project (Capacitor)
         run: npx cap copy android
