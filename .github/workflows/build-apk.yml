@@ -2,7 +2,7 @@ name: بناء تطبيق أندرويد (APK)
 
 on:
   push:
-    branches: [ main, master ]
+    branches: [ main, master, 'review/islamiyat-github-integration-20261121' ]
   workflow_dispatch: {}
 
 jobs:
@@ -23,7 +23,7 @@ jobs:
         run: npm install
 
       - name: Copy web assets into Android project (Capacitor)
-        run: npx cap copy android || echo "cap copy skipped - using committed assets"
+        run: npx cap copy android
 
       - name: Set up JDK 21
         uses: actions/setup-java@v4
