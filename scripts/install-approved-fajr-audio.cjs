@@ -11,11 +11,7 @@ const recordings=[
 ];
 function hash(b){return crypto.createHash('sha256').update(b).digest('hex')}
 if(!fs.existsSync(archive)){
-  console.log('::warning::Approved Fajr audio ZIP not present in repository; build is AUDIO-INCOMPLETE. Upload '+archive+' at repo root.');
-  for(const {entry} of recordings){
-    if(fs.existsSync(entry)) console.log('Existing packaged voice '+entry);
-    else console.log('Missing approved bundled voice '+entry);
-  }
+  throw new Error('Approved Fajr audio ZIP is missing. Upload '+archive+' to repository root on review branch before building a complete APK.');
 }else{
   for(const {entry,sha256} of recordings){
     const bytes=cp.execFileSync('unzip',['-p',archive,entry],{maxBuffer:7*1024*1024});
