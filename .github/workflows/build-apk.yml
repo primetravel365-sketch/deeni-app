@@ -26,6 +26,7 @@ jobs:
         run: |
           node --check www/islamiyat-enhancements.js
           node --check www/islamiyat-ui-review.js
+          node --check www/islamiyat-content-review.js
           node --check scripts/patch-review-web.cjs
 
       - name: Apply verified review fixes to large web bundle
