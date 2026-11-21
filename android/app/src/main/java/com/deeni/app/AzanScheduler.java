@@ -70,7 +70,7 @@ class AzanScheduler {
             int[] hms = PrayTimeCalculator.hms(decimalTime);
             persist(context, key, name, hms[0], hms[1], hms[2], soundType, source);
             Integer reqCode = REQUEST_CODES.get(key);
-            if (reqCode != null) armAlarm(context, reqCode, key, name, hms[0], hms[1], hms[2], soundType, source);
+            if (reqCode != null) armAlarmForDate(context, reqCode, key, name, hms[0], hms[1], hms[2], soundType, source, cal);
         } catch (Exception ignore) {
             // في حال أي خطأ حسابي غير متوقع، لا نكسر التطبيق — الجدولة القادمة عبر فتح التطبيق ستُصحّح الوضع
         }
@@ -111,6 +111,23 @@ class AzanScheduler {
         clearPersisted(context);
     }
 
+    /**
+     * Schedule the recalculated prayer for the actual target calendar date.
+     * Without this, tomorrow's later clock time can accidentally be armed for today,
+     * causing a duplicate adhan a few hours after the current prayer.
+     */
+    private static void armAlarmForDate(Context context, int reqCode, String key, String name,
+                                        int hour, int minute, int second, String soundType,
+                                        String source, Calendar targetDate) {
+        Calendar target = (Calendar) targetDate.clone();
+        target.set(Calendar.HOUR_OF_DAY, hour);
+        target.set(Calendar.MINUTE, minute);
+        target.set(Calendar.SECOND, second);
+        target.set(Calendar.MILLISECOND, 0);
+        armAlarmAt(context, reqCode, key, name, hour, minute, second, soundType, source,
+                   target.getTimeInMillis());
+    }
+
     private static void armAlarm(Context context, int reqCode, String key, String name, int hour, int minute, int second, String soundType, String source) {
         try {
             AlarmManager am = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
@@ -124,6 +141,18 @@ class AzanScheduler {
             if (cal.getTimeInMillis() <= System.currentTimeMillis()) {
                 cal.add(Calendar.DAY_OF_YEAR, 1);
             }
+
+            armAlarmAt(context, reqCode, key, name, hour, minute, second, soundType, source,
+                       cal.getTimeInMillis());
+        } catch (Exception ignore) {}
+    }
+
+    private static void armAlarmAt(Context context, int reqCode, String key, String name,
+                                   int hour, int minute, int second, String soundType,
+                                   String source, long triggerAtMillis) {
+        try {
+            AlarmManager am = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
+            if (am == null) return;
 
             Intent intent = new Intent(context, AzanAlarmReceiver.class);
             intent.putExtra("key", key);
@@ -139,12 +168,12 @@ class AzanScheduler {
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                 if (am.canScheduleExactAlarms()) {
-                    am.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, cal.getTimeInMillis(), pi);
+                    am.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerAtMillis, pi);
                 } else {
-                    am.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, cal.getTimeInMillis(), pi);
+                    am.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerAtMillis, pi);
                 }
             } else {
-                am.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, cal.getTimeInMillis(), pi);
+                am.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerAtMillis, pi);
             }
         } catch (Exception ignore) {}
     }
