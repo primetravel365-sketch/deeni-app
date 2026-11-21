@@ -40,6 +40,22 @@ function links(){open('روابط دينية');article.append(create('p','الر
 function locationSetup(){open('إعداد الموقع والتنبيهات');article.append(create('p','لتحديد مواقيت الصلاة بدقة، امنح إذن الموقع من النظام. لن نعرض رقم منزل تقديريًا، ولن نطلب استثناء البطارية دون موافقتك.'));const status=create('p','حالة الصلاحيات لم تُفحص بعد.');article.append(status);
 article.append(button('طلب تحديد الموقع الدقيق',()=>{if(!navigator.geolocation){status.textContent='خدمة الموقع غير متوفرة.';return}navigator.geolocation.getCurrentPosition(p=>{const a=p.coords;status.textContent='تم تحديد الموقع بدقة تقريبية '+Math.round(a.accuracy)+' متر. يمكن استخدام الإحداثيات في حساب مواقيت الصلاة، دون حفظها في هذه النافذة.';window.dispatchEvent(new CustomEvent('islamiyat:location-updated',{detail:{latitude:a.latitude,longitude:a.longitude,accuracy:a.accuracy}}))},e=>{status.textContent=e.code===1?'تم رفض إذن الموقع. يمكنك تفعيله من إعدادات التطبيق.':'تعذر الحصول على الموقع. تحقق من GPS.'},{enableHighAccuracy:true,timeout:15000,maximumAge:30000})}));
 const plugin=()=>window.Capacitor?.Plugins?.BatteryOptim;
+article.append(button('عرض العنوان التقريبي من الموقع',()=>{
+ if(!navigator.geolocation){status.textContent='خدمة GPS غير متوفرة.';return}
+ status.textContent='جارٍ تحديد الموقع وإرسال الإحداثيات لخدمة OpenStreetMap بعد موافقتك…';
+ navigator.geolocation.getCurrentPosition(async p=>{
+  const {latitude,longitude}=p.coords;
+  try{
+   const url='https://nominatim.openstreetmap.org/reverse?format=jsonv2&zoom=18&addressdetails=1&lat='+encodeURIComponent(latitude)+'&lon='+encodeURIComponent(longitude);
+   const res=await fetch(url,{headers:{Accept:'application/json'}});
+   if(!res.ok)throw Error('geocoder unavailable');
+   const data=await res.json();
+   const addr=data.address||{};
+   const house=addr.house_number?('، رقم '+addr.house_number):'';
+   status.textContent='العنوان المتاح: '+(data.display_name||'غير مسجل')+house+'. قد لا تتوفر تفاصيل المنزل، ويجب التحقق من الموقع على الخريطة.';
+  }catch(e){status.textContent='تعذّر استرجاع العنوان. سيظل تحديد GPS متاحًا دون اسم الشارع.'}
+ },()=>{status.textContent='تعذّر تحديد الموقع.'},{enableHighAccuracy:true,timeout:15000,maximumAge:30000});
+}));
 article.append(button('التحقق من صلاحيات التنبيهات الدقيقة',async()=>{try{const api=plugin();if(!api?.canScheduleExactAlarms)throw Error('not available');const x=await api.canScheduleExactAlarms();status.textContent=x.allowed?'التنبيهات الدقيقة مسموحة.':'التنبيهات الدقيقة تحتاج سماحًا من إعدادات أندرويد.'}catch(_){status.textContent='لا يمكن قراءة حالة الصلاحية على هذا الجهاز.'}}));
 article.append(button('فتح إعدادات التنبيهات الدقيقة',async()=>{try{const api=plugin();if(!api?.requestExactAlarmPermission)throw Error('not available');await api.requestExactAlarmPermission()}catch(_){status.textContent='لا يمكن فتح إعدادات التنبيهات الدقيقة تلقائيًا.'}}));
 article.append(button('فتح إعدادات توفير البطارية',async()=>{try{const api=plugin();if(!api?.requestIgnoreBatteryOptimizations)throw Error('not available');await api.requestIgnoreBatteryOptimizations()}catch(_){status.textContent='افتح إعدادات التطبيق للتحكم في توفير البطارية.'}}));
