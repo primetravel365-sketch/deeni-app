@@ -43,7 +43,7 @@ class AzanScheduler {
         try {
             SharedPreferences loc = context.getSharedPreferences(LOC_PREFS, Context.MODE_PRIVATE);
             if (!loc.contains("lat")) {
-                // لا يوجد موقع محفوظ بعد (أول تشغيل قبل أي مزامنة) — رجوع للسلوك القديم كحل احتياطي
+                armTomorrowFromPersisted(context, key, name, soundType, source);
                 return;
             }
             double lat = loc.getFloat("lat", 0f);
@@ -72,8 +72,24 @@ class AzanScheduler {
             Integer reqCode = REQUEST_CODES.get(key);
             if (reqCode != null) armAlarmForDate(context, reqCode, key, name, hms[0], hms[1], hms[2], soundType, source, cal);
         } catch (Exception ignore) {
-            // في حال أي خطأ حسابي غير متوقع، لا نكسر التطبيق — الجدولة القادمة عبر فتح التطبيق ستُصحّح الوضع
+            armTomorrowFromPersisted(context, key, name, soundType, source);
         }
+    }
+
+    /** Keep tomorrow's alarm alive if saved location or calculation is unavailable. */
+    private static void armTomorrowFromPersisted(Context context, String key, String name,
+                                                 String soundType, String source) {
+        Integer reqCode = REQUEST_CODES.get(key);
+        if (reqCode == null) return;
+        SharedPreferences sp = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE);
+        int hour = sp.getInt(key + "_hour", -1);
+        int minute = sp.getInt(key + "_minute", -1);
+        int second = sp.getInt(key + "_second", 0);
+        if (hour < 0 || hour > 23 || minute < 0 || minute > 59 || second < 0 || second > 59) return;
+        Calendar tomorrow = Calendar.getInstance();
+        tomorrow.add(Calendar.DAY_OF_YEAR, 1);
+        armAlarmForDate(context, reqCode, key, name, hour, minute, second,
+                        soundType, source, tomorrow);
     }
 
     static void rearmAllFromPersisted(Context context) {
