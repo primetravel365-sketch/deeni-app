@@ -1,5 +1,6 @@
 package com.deeni.app;
 
+import android.app.AlarmManager;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
@@ -34,7 +35,7 @@ public class BatteryOptimPlugin extends Plugin {
                 ignoring = pm != null && pm.isIgnoringBatteryOptimizations(getContext().getPackageName());
             }
         } catch (Exception e) {
-            ignoring = true; // لو حصل خطأ غير متوقع، منمنعش المستخدم من باقي التطبيق بسبب فحص إضافي
+            ignoring = false; // Unknown status must never be reported as an active exemption
         }
         ret.put("ignoring", ignoring);
         call.resolve(ret);
@@ -61,6 +62,54 @@ public class BatteryOptimPlugin extends Plugin {
                 call.resolve();
             } catch (Exception e2) {
                 call.reject("تعذّر فتح إعدادات البطارية");
+            }
+        }
+    }
+
+    /**
+     * Android 12+ requires user-approved exact alarms on some installations.
+     * Reporting the real status lets the onboarding screen explain why adhan
+     * alerts might otherwise be delayed. This does not grant permission.
+     */
+    @PluginMethod
+    public void canScheduleExactAlarms(PluginCall call) {
+        JSObject ret = new JSObject();
+        boolean allowed = true;
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                AlarmManager manager = (AlarmManager) getContext()
+                        .getSystemService(Context.ALARM_SERVICE);
+                allowed = manager != null && manager.canScheduleExactAlarms();
+            }
+        } catch (Exception e) {
+            allowed = false;
+        }
+        ret.put("allowed", allowed);
+        call.resolve(ret);
+    }
+
+    /** Open Android's official exact-alarm access screen on user request. */
+    @PluginMethod
+    public void requestExactAlarmPermission(PluginCall call) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) {
+            call.resolve();
+            return;
+        }
+        try {
+            Intent settings = new Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM);
+            settings.setData(Uri.parse("package:" + getContext().getPackageName()));
+            settings.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            getContext().startActivity(settings);
+            call.resolve();
+        } catch (Exception e) {
+            try {
+                Intent fallback = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
+                fallback.setData(Uri.parse("package:" + getContext().getPackageName()));
+                fallback.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                getContext().startActivity(fallback);
+                call.resolve();
+            } catch (Exception e2) {
+                call.reject("تعذّر فتح إعدادات التنبيهات الدقيقة", e2);
             }
         }
     }
