@@ -116,10 +116,16 @@ public class AzanPlaybackService extends Service {
         if (source == null || source.length() == 0) return null;
         try {
             if ("real".equals(soundType)) {
-                return Uri.parse(source); // content:// URI جاهز من ملف مؤذن مُنزَّل مسبقًا
+                // Never stream the adhan. Only a locally cached content URI is allowed.
+                Uri local = Uri.parse(source);
+                return "content".equalsIgnoreCase(local.getScheme()) ? local : null;
             }
-            // "bundled" — اسم مورد raw مُضمَّن جوه التطبيق (بدون امتداد)
-            return Uri.parse("android.resource://" + getPackageName() + "/raw/" + source);
+            if (!"bundled".equals(soundType) || !source.matches("[a-z][a-z0-9_]*")) {
+                return null;
+            }
+            // Fail clearly when a selected bundled voice was not packaged in res/raw.
+            int rawId = getResources().getIdentifier(source, "raw", getPackageName());
+            return rawId == 0 ? null : Uri.parse("android.resource://" + getPackageName() + "/" + rawId);
         } catch (Exception e) {
             return null;
         }
