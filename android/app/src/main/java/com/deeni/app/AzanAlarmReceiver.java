@@ -2,6 +2,7 @@ package com.deeni.app;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.content.Intent;
 import android.os.Build;
 
@@ -18,6 +19,15 @@ public class AzanAlarmReceiver extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
         if (intent == null) return;
+
+        // Guard against duplicate delivery of the same prayer alarm.
+        String alarmKey = intent.getStringExtra("key");
+        if (alarmKey == null || alarmKey.isEmpty()) return;
+        long now = System.currentTimeMillis();
+        SharedPreferences guard = context.getSharedPreferences("deeni_azan_receiver_guard_v1", Context.MODE_PRIVATE);
+        long last = guard.getLong(alarmKey, 0L);
+        if (last > 0L && now >= last && now - last < 45000L) return;
+        guard.edit().putLong(alarmKey, now).commit();
 
         try {
             Intent serviceIntent = new Intent(context, AzanPlaybackService.class);
