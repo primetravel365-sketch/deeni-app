@@ -23,7 +23,10 @@ jobs:
         run: npm install
 
       - name: Validate Quran radio and nearby-mosque JavaScript
-        run: node --check www/islamiyat-enhancements.js
+        run: |
+          node --check www/islamiyat-enhancements.js
+          node --check www/islamiyat-ui-review.js
+          node --check scripts/patch-review-web.cjs
 
       - name: Apply verified review fixes to large web bundle
         run: node scripts/patch-review-web.cjs
