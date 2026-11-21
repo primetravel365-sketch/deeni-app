@@ -35,4 +35,14 @@ if (html.includes(enhancementTag)) {
   html = html.slice(0, closingBody) + enhancementTag + html.slice(closingBody);
   console.log('Attached Quran radio and Qibla enhancements');
 }
+// The visual fixes are loaded after the existing app and review enhancements.
+const uiModule = 'www/islamiyat-ui-review.js';
+const uiTag = '<script defer src="islamiyat-ui-review.js"></script>';
+if (!fs.existsSync(uiModule)) throw new Error('Missing visual review module');
+if (!html.includes(uiTag)) {
+  const at = html.toLowerCase().lastIndexOf('</body>');
+  if (at < 0) throw new Error('Missing closing body for UI module');
+  html = html.slice(0, at) + uiTag + html.slice(at);
+  console.log('Attached approved onboarding and UI review fixes');
+}
 fs.writeFileSync(file, html, 'utf8');
