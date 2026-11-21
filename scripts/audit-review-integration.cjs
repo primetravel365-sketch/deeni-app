@@ -27,7 +27,7 @@ fs.mkdirSync('build-reports',{recursive:true});fs.writeFileSync('build-reports/i
 console.log('Original UI feature occurrence summary');
 for(const x of logs)console.log(x.word+': '+x.hits+' '+x.examples.map(s=>s.replace(/::/g,':')).join(' :: '));
 console.log('Audio recordings '+sounds.length+' duplicate file groups '+duplicates.length+' missing approved filenames '+report.missingRequested.join(', '));
-for(const re of [/muezzins\\s*=\\s*\\[/g,/BUNDLED_MUEZZIN_RAWKEYS\\s*=.{0,80}/g,/selectedMuezzin\\s*=.{0,90}/g,/MUEZZIN_PREFER_ONLINE\\s*=.{0,80}/g]){
- const m=re.exec(original);console.log('AUDIO_UI_ANCHOR '+String(re)+' '+(m?original.slice(Math.max(0,m.index-80),m.index+550).replace(/\\s+/g,' '):'NOT FOUND'));
+for(const needle of ['muezzins=','BUNDLED_MUEZZIN_RAWKEYS=','selectedMuezzin=','MUEZZIN_PREFER_ONLINE=']){
+ const at=original.indexOf(needle);
+ console.log('AUDIO_UI_ANCHOR '+needle+' '+(at>=0?original.slice(Math.max(0,at-80),at+700).replace(/\\s+/g,' '):'NOT FOUND'));
 }
-
