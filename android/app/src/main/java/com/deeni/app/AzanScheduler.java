@@ -79,20 +79,76 @@ class AzanScheduler {
     static void rearmAllFromPersisted(Context context) {
         try {
             SharedPreferences sp = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE);
+            SharedPreferences loc = context.getSharedPreferences(LOC_PREFS, Context.MODE_PRIVATE);
+            boolean hasLocation = loc.contains("lat") && loc.contains("lon");
             for (String key : REQUEST_CODES.keySet()) {
                 if (!sp.getBoolean(key + "_set", false)) continue;
                 String name = sp.getString(key + "_name", key);
+                String soundType = sp.getString(key + "_soundType", null);
+                String source = sp.getString(key + "_source", null);
+                if (source == null) continue;
+
+                // After a reboot or timezone change, persisted clock times can be stale.
+                // Recalculate today's next occurrence using the saved coordinates.
+                if (hasLocation) {
+                    try {
+                        Calendar target = Calendar.getInstance();
+                        int method = loc.getInt("method", 16);
+                        double lat = loc.getFloat("lat", 0f);
+                        double lon = loc.getFloat("lon", 0f);
+                        int[] hms = calculatePrayerHms(target, key, lat, lon, method);
+                        if (hms == null) continue;
+                        Calendar trigger = (Calendar) target.clone();
+                        trigger.set(Calendar.HOUR_OF_DAY, hms[0]);
+                        trigger.set(Calendar.MINUTE, hms[1]);
+                        trigger.set(Calendar.SECOND, hms[2]);
+                        trigger.set(Calendar.MILLISECOND, 0);
+                        if (trigger.getTimeInMillis() <= System.currentTimeMillis()) {
+                            target.add(Calendar.DAY_OF_YEAR, 1);
+                            hms = calculatePrayerHms(target, key, lat, lon, method);
+                            if (hms == null) continue;
+                        }
+                        persist(context, key, name, hms[0], hms[1], hms[2], soundType, source);
+                        Integer reqCode = REQUEST_CODES.get(key);
+                        if (reqCode != null) {
+                            armAlarmForDate(context, reqCode, key, name, hms[0], hms[1], hms[2],
+                                            soundType, source, target);
+                        }
+                        continue;
+                    } catch (Exception ignored) {
+                        // Fall back to persisted values only when calculation fails.
+                    }
+                }
+
                 int hour = sp.getInt(key + "_hour", -1);
                 int minute = sp.getInt(key + "_minute", -1);
                 int second = sp.getInt(key + "_second", 0);
-                String soundType = sp.getString(key + "_soundType", null);
-                String source = sp.getString(key + "_source", null);
-                if (hour < 0 || minute < 0 || source == null) continue;
+                if (hour < 0 || minute < 0) continue;
                 Integer reqCode = REQUEST_CODES.get(key);
-                if (reqCode == null) continue;
-                armAlarm(context, reqCode, key, name, hour, minute, second, soundType, source);
+                if (reqCode != null) {
+                    armAlarm(context, reqCode, key, name, hour, minute, second, soundType, source);
+                }
             }
         } catch (Exception ignore) {}
+    }
+
+    private static int[] calculatePrayerHms(Calendar date, String key,
+                                            double lat, double lon, int method) {
+        double tz = PrayTimeCalculator.timezoneOffsetHours(date);
+        PrayTimeCalculator.Times times = PrayTimeCalculator.compute(
+                date.get(Calendar.YEAR), date.get(Calendar.MONTH) + 1,
+                date.get(Calendar.DAY_OF_MONTH), lat, lon, tz, method, 1);
+        double time;
+        switch (key) {
+            case "fajr": time = times.fajr; break;
+            case "dhuhr": time = times.dhuhr; break;
+            case "asr": time = times.asr; break;
+            case "maghrib": time = times.maghrib; break;
+            case "isha": time = times.isha; break;
+            default: return null;
+        }
+        if (Double.isNaN(time) || Double.isInfinite(time)) return null;
+        return PrayTimeCalculator.hms(time);
     }
 
     static void cancelAll(Context context) {
