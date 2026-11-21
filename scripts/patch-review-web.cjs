@@ -30,9 +30,9 @@ if (!fs.existsSync('www/islamiyat-enhancements.js')) {
 if (html.includes(enhancementTag)) {
   console.log('Review enhancements already attached');
 } else {
-  const closingBody = /<\\/body>/i;
-  if (!closingBody.test(html)) throw new Error('Missing </body> insertion point');
-  html = html.replace(closingBody, enhancementTag + '\\n</body>');
+  const closingBody = html.toLowerCase().lastIndexOf('</body>');
+  if (closingBody < 0) throw new Error('Missing </body> insertion point');
+  html = html.slice(0, closingBody) + enhancementTag + html.slice(closingBody);
   console.log('Attached Quran radio and Qibla enhancements');
 }
 fs.writeFileSync(file, html, 'utf8');
