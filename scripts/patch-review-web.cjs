@@ -45,4 +45,14 @@ if (!html.includes(uiTag)) {
   html = html.slice(0, at) + uiTag + html.slice(at);
   console.log('Attached approved onboarding and UI review fixes');
 }
+// Additional content layer; preserve upstream bundle and navigation.
+const contentModule = 'www/islamiyat-content-review.js';
+const contentTag = '<script defer src="islamiyat-content-review.js"></script>';
+if (!fs.existsSync(contentModule)) throw new Error('Missing content review module');
+if (!html.includes(contentTag)) {
+  const at = html.toLowerCase().lastIndexOf('</body>');
+  if (at < 0) throw new Error('Missing closing body for content module');
+  html = html.slice(0, at) + contentTag + html.slice(at);
+  console.log('Attached sourced daily duas, Ramadan and location setup');
+}
 fs.writeFileSync(file, html, 'utf8');
