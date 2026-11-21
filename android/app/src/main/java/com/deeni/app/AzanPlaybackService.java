@@ -53,6 +53,11 @@ public class AzanPlaybackService extends Service {
             return START_NOT_STICKY;
         }
 
+        // A second alarm can reach the same Service instance while a previous
+        // recording is still playing. Release the old player and callbacks first
+        // so that overlapping audio and stale timeout callbacks cannot accumulate.
+        releasePlaybackResources();
+
         String prayerName = intent != null ? intent.getStringExtra("name") : null;
         String soundType = intent != null ? intent.getStringExtra("soundType") : null;
         String source = intent != null ? intent.getStringExtra("source") : null;
@@ -161,33 +166,46 @@ public class AzanPlaybackService extends Service {
                 .build();
     }
 
-    private void stopSelfSafely() {
+    private void releasePlaybackResources() {
         try {
             if (failSafeHandler != null && failSafeRunnable != null) {
                 failSafeHandler.removeCallbacks(failSafeRunnable);
             }
         } catch (Exception ignore) {}
-        try {
-            if (mediaPlayer != null) {
-                if (mediaPlayer.isPlaying()) mediaPlayer.stop();
-                mediaPlayer.release();
-                mediaPlayer = null;
-            }
-        } catch (Exception ignore) {}
-        try {
-            if (wakeLock != null && wakeLock.isHeld()) wakeLock.release();
-        } catch (Exception ignore) {}
+        failSafeRunnable = null;
+        failSafeHandler = null;
+
+        MediaPlayer player = mediaPlayer;
+        mediaPlayer = null;
+        if (player != null) {
+            try {
+                if (player.isPlaying()) player.stop();
+            } catch (Exception ignore) {}
+            try {
+                player.release();
+            } catch (Exception ignore) {}
+        }
+
+        PowerManager.WakeLock lock = wakeLock;
+        wakeLock = null;
+        if (lock != null) {
+            try {
+                if (lock.isHeld()) lock.release();
+            } catch (Exception ignore) {}
+        }
+    }
+
+    private void stopSelfSafely() {
+        releasePlaybackResources();
         try {
             stopForeground(true);
         } catch (Exception ignore) {}
-        try {
-            stopSelf();
-        } catch (Exception ignore) {}
+        stopSelf();
     }
 
     @Override
     public void onDestroy() {
-        stopSelfSafely();
+        releasePlaybackResources();
         super.onDestroy();
     }
 }
