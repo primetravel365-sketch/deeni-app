@@ -22,4 +22,17 @@ for (const p of patches) {
   html = html.replace(p.oldText, p.newText);
   console.log('Applied:', p.reason);
 }
+// Attach optional radio/mosque features without rewriting the 6-MB minified bundle.
+const enhancementTag = '<script defer src="islamiyat-enhancements.js"></script>';
+if (!fs.existsSync('www/islamiyat-enhancements.js')) {
+  throw new Error('Missing Quran radio / Qibla enhancements module');
+}
+if (html.includes(enhancementTag)) {
+  console.log('Review enhancements already attached');
+} else {
+  const closingBody = /<\\/body>/i;
+  if (!closingBody.test(html)) throw new Error('Missing </body> insertion point');
+  html = html.replace(closingBody, enhancementTag + '\\n</body>');
+  console.log('Attached Quran radio and Qibla enhancements');
+}
 fs.writeFileSync(file, html, 'utf8');
