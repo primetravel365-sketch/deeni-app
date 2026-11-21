@@ -108,8 +108,11 @@ class PrayTimeCalculator {
     }
 
     private static double asrTime(int factor, double decl, double lat) {
-        double val = darccot(factor + dtan(Math.abs(lat - decl)));
-        return val / 15.0;
+        // The shadow ratio determines the Sun's altitude at Asr, not a time
+        // offset. Convert that altitude into the Sun's hour angle from noon.
+        // Simply dividing arccot(...) by 15 gives an Asr time far too early.
+        double altitude = darccot(factor + dtan(Math.abs(lat - decl)));
+        return sunAngleTime(-altitude, decl, lat, false);
     }
 
     private static double fixHour(double v) { v = v - 24.0 * Math.floor(v / 24.0); return v; }
