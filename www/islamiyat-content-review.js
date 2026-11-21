@@ -56,6 +56,14 @@ article.append(button('عرض العنوان التقريبي من الموقع'
   }catch(e){status.textContent='تعذّر استرجاع العنوان. سيظل تحديد GPS متاحًا دون اسم الشارع.'}
  },()=>{status.textContent='تعذّر تحديد الموقع.'},{enableHighAccuracy:true,timeout:15000,maximumAge:30000});
 }));
+article.append(button('السماح بإشعارات الصلاة',async()=>{
+ try{
+  const notifications=window.Capacitor?.Plugins?.LocalNotifications;
+  if(!notifications?.requestPermissions)throw Error('missing plugin');
+  const permission=await notifications.requestPermissions();
+  status.textContent=permission.display==='granted'?'تم السماح بالإشعارات.':'لم تُمنح صلاحية الإشعارات؛ يمكنك تفعيلها من إعدادات التطبيق.';
+ }catch(e){status.textContent='تعذّر عرض طلب الإشعارات. تحقق من إعدادات أندرويد.'}
+}));
 article.append(button('التحقق من صلاحيات التنبيهات الدقيقة',async()=>{try{const api=plugin();if(!api?.canScheduleExactAlarms)throw Error('not available');const x=await api.canScheduleExactAlarms();status.textContent=x.allowed?'التنبيهات الدقيقة مسموحة.':'التنبيهات الدقيقة تحتاج سماحًا من إعدادات أندرويد.'}catch(_){status.textContent='لا يمكن قراءة حالة الصلاحية على هذا الجهاز.'}}));
 article.append(button('فتح إعدادات التنبيهات الدقيقة',async()=>{try{const api=plugin();if(!api?.requestExactAlarmPermission)throw Error('not available');await api.requestExactAlarmPermission()}catch(_){status.textContent='لا يمكن فتح إعدادات التنبيهات الدقيقة تلقائيًا.'}}));
 article.append(button('فتح إعدادات توفير البطارية',async()=>{try{const api=plugin();if(!api?.requestIgnoreBatteryOptimizations)throw Error('not available');await api.requestIgnoreBatteryOptimizations()}catch(_){status.textContent='افتح إعدادات التطبيق للتحكم في توفير البطارية.'}}));
