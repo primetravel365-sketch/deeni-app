@@ -133,6 +133,13 @@ public class AzanSoundPlugin extends Plugin {
             if (lat != null && lon != null) {
                 AzanScheduler.persistLocation(getContext(), lat, lon, method == null ? 16 : method);
             }
+            if ("fajr".equals(key)) {
+                // The caller must supply the real iqama interval. If absent,
+                // do not guess an iqama time or play a potentially overlapping clip.
+                Integer iqamaMinutes = call.getInt("iqamaMinutes");
+                AzanScheduler.setFajrIqamaMinutes(getContext(),
+                        iqamaMinutes == null ? 0 : iqamaMinutes);
+            }
             AzanScheduler.schedule(getContext(), key, name, hour, minute, second == null ? 0 : second, soundType, source);
             call.resolve();
         } catch (Exception e) {
