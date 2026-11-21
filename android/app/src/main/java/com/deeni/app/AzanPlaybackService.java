@@ -161,6 +161,7 @@ public class AzanPlaybackService extends Service {
                 .setContentText("جاري تشغيل الأذان الكامل — اضغط إيقاف للسكوت")
                 .setSmallIcon(getApplicationInfo().icon)
                 .setOngoing(true)
+                .setContentIntent(stopPending)
                 .setPriority(NotificationCompat.PRIORITY_LOW)
                 .addAction(0, "إيقاف", stopPending)
                 .build();
