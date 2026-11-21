@@ -42,6 +42,9 @@ jobs:
           path: build-reports/integration-audit.json
           if-no-files-found: error
 
+      - name: Install approved Fajr audio if uploaded
+        run: node scripts/install-approved-fajr-audio.cjs
+
       - name: Copy web assets into Android project (Capacitor)
         run: npx cap copy android
 
