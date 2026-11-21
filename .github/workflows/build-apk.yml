@@ -32,6 +32,16 @@ jobs:
       - name: Apply verified review fixes to large web bundle
         run: node scripts/patch-review-web.cjs
 
+      - name: Audit actual UI, offline audio and integration links
+        run: node scripts/audit-review-integration.cjs
+
+      - name: Upload integration audit report
+        uses: actions/upload-artifact@v4
+        with:
+          name: islamiyat-integration-audit
+          path: build-reports/integration-audit.json
+          if-no-files-found: error
+
       - name: Copy web assets into Android project (Capacitor)
         run: npx cap copy android
 
