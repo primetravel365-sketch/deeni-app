@@ -24,6 +24,14 @@ class AzanScheduler {
         REQUEST_CODES.put("isha", 9005);
     }
 
+    // The Fajr follow-up is opt-in and needs a confirmed iqama interval.
+    // Zero disables the follow-up until actual iqama settings are supplied.
+    static void setFajrIqamaMinutes(Context context, int minutes) {
+        if (minutes < 0 || minutes > 180) return;
+        context.getSharedPreferences("deeni_fajr_followup_v1", Context.MODE_PRIVATE)
+                .edit().putInt("iqamaMinutes", minutes).apply();
+    }
+
     static void persistLocation(Context context, double lat, double lon, int method) {
         if (!Double.isFinite(lat) || !Double.isFinite(lon)
                 || lat < -90.0 || lat > 90.0 || lon < -180.0 || lon > 180.0) return;
@@ -245,6 +253,7 @@ class AzanScheduler {
             intent.putExtra("second", second);
             intent.putExtra("soundType", soundType);
             intent.putExtra("source", source);
+            intent.putExtra("scheduledAtMillis", triggerAtMillis);
 
             int flags = PendingIntent.FLAG_UPDATE_CURRENT | (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S ? PendingIntent.FLAG_IMMUTABLE : 0);
             PendingIntent pi = PendingIntent.getBroadcast(context, reqCode, intent, flags);
