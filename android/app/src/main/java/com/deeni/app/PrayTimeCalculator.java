@@ -127,7 +127,7 @@ class PrayTimeCalculator {
 
     /** فرق التوقيت المحلي عن UTC بالساعات، للتاريخ المعطى (يراعي التوقيت الصيفي لو موجود). */
     static double timezoneOffsetHours(Calendar cal) {
-        TimeZone tz = TimeZone.getDefault();
+        TimeZone tz = cal.getTimeZone();
         return tz.getOffset(cal.getTimeInMillis()) / 3600000.0;
     }
 }
