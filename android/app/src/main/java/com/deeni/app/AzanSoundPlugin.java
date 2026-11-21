@@ -88,8 +88,19 @@ public class AzanSoundPlugin extends Plugin {
             Double lat = call.getDouble("latitude");
             Double lon = call.getDouble("longitude");
             Integer method = call.getInt("method");
-            if (key == null || hour == null || minute == null || source == null) {
+            if (key == null || hour == null || minute == null || source == null || source.trim().isEmpty()) {
                 call.reject("missing required params");
+                return;
+            }
+            if (hour < 0 || hour > 23 || minute < 0 || minute > 59
+                    || (second != null && (second < 0 || second > 59))) {
+                call.reject("invalid prayer time");
+                return;
+            }
+            if ((lat == null) != (lon == null)
+                    || (lat != null && (!Double.isFinite(lat) || !Double.isFinite(lon)
+                    || lat < -90 || lat > 90 || lon < -180 || lon > 180))) {
+                call.reject("invalid location coordinates");
                 return;
             }
             if (lat != null && lon != null) {
