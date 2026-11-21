@@ -45,6 +45,9 @@ jobs:
       - name: Copy web assets into Android project (Capacitor)
         run: npx cap copy android
 
+      - name: Verify copied Android assets and offline adhan safety
+        run: node scripts/verify-android-bundle.cjs
+
       - name: Set up JDK 21
         uses: actions/setup-java@v4
         with:
