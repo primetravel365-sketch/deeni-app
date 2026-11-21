@@ -11,6 +11,11 @@ const patches = [
     newText: 'adhanNotificationsEnabled&&scheduleAdhanNotifications(),closePrayerNotifSettings()'
   },
   {
+    reason: 'Pass actual Fajr iqama interval into native full-adhan alarm, never other prayers',
+    oldText: 'soundType:"bundled",source:o.rawKey,latitude:',
+    newText: 'soundType:"bundled",source:o.rawKey,iqamaMinutes:"fajr"===t.key?(t.iqamah||0):0,latitude:'
+  },
+  {
     reason: 'Remove call to native short-notification API which the Android plugin does not implement',
     oldText: 'try{const azn=getNativeAzanSound();azn&&azn.scheduleShortNotifications&&await azn.scheduleShortNotifications({configs:prayerSchedule.filter(p=>"shuroq"!==p.key).map(p=>({key:p.key,name:p.name,adhanNowEnabled:!1!==p.adhanNowEnabled,iqamaEnabled:!0===p.iqamaEnabled,beforeIqamaEnabled:!0===p.beforeIqamaEnabled,iqamahMinutes:p.iqamah||0,beforeIqamaMins:p.beforeIqamaMins||0}))})}catch(t){}',
     newText: ''
