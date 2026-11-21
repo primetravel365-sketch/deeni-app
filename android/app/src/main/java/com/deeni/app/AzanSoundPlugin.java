@@ -113,6 +113,33 @@ public class AzanSoundPlugin extends Plugin {
         }
     }
 
+    /** Offline night calculation: Maghrib today to Fajr tomorrow (device-local zone). */
+    @PluginMethod
+    public void getIslamicNightTimes(PluginCall call) {
+        try {
+            Double lat = call.getDouble("latitude");
+            Double lon = call.getDouble("longitude");
+            Integer methodId = call.getInt("method");
+            Integer asrFactor = call.getInt("asrFactor");
+            if (lat == null || lon == null) {
+                call.reject("latitude and longitude are required");
+                return;
+            }
+            NightTimeCalculator.Night night = NightTimeCalculator.calculate(
+                    java.util.Calendar.getInstance(), lat, lon,
+                    methodId == null ? 16 : methodId,
+                    asrFactor != null && asrFactor == 2 ? 2 : 1);
+            JSObject ret = new JSObject();
+            ret.put("maghrib", night.maghribMillis);
+            ret.put("nextFajr", night.nextFajrMillis);
+            ret.put("midnight", night.midpointMillis);
+            ret.put("lastThird", night.lastThirdMillis);
+            call.resolve(ret);
+        } catch (Exception e) {
+            call.reject("failed to calculate night times: " + e.getMessage());
+        }
+    }
+
     /** إضافة (دفعة ٦٣): إلغاء كل منبّهات الأذان الكامل الخمسة المجدوَلة — يُستدعى قبل إعادة الجدولة. */
     @PluginMethod
     public void cancelAllFullAzan(PluginCall call) {
