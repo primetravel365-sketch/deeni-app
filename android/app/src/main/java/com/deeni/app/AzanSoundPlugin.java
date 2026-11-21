@@ -103,6 +103,26 @@ public class AzanSoundPlugin extends Plugin {
                 call.reject("invalid location coordinates");
                 return;
             }
+            // Never accept a remote audio stream for scheduled prayers.
+            // Validate before saving schedule so a missing voice cannot silently
+            // replace the already configured alarm with an unplayable one.
+            if ("bundled".equals(soundType)) {
+                if (!source.matches("[a-z][a-z0-9_]*")
+                        || getContext().getResources().getIdentifier(
+                            source, "raw", getContext().getPackageName()) == 0) {
+                    call.reject("bundled adhan resource is missing: " + source);
+                    return;
+                }
+            } else if ("real".equals(soundType)) {
+                Uri local = Uri.parse(source);
+                if (!"content".equalsIgnoreCase(local.getScheme())) {
+                    call.reject("adhan voice must be an offline content URI");
+                    return;
+                }
+            } else {
+                call.reject("unsupported adhan sound type");
+                return;
+            }
             if (lat != null && lon != null) {
                 AzanScheduler.persistLocation(getContext(), lat, lon, method == null ? 16 : method);
             }
