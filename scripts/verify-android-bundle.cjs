@@ -48,4 +48,23 @@ assert.match(soundPlugin,/getCanonicalFile\(\)/,
 assert.match(soundPlugin,/getPath\(\)\.startsWith\(cache\.getPath\(\) \+ File\.separator\)/,
  'Cached audio must remain inside the app cache directory');
 console.log('Verified native schedule rejection of invalid voices and path safety.');
+const followupService=fs.readFileSync(
+ 'android/app/src/main/java/com/deeni/app/AzanPlaybackService.java','utf8');
+const followupScheduler=fs.readFileSync(
+ 'android/app/src/main/java/com/deeni/app/AzanScheduler.java','utf8');
+const followupPlugin=fs.readFileSync(
+ 'android/app/src/main/java/com/deeni/app/AzanSoundPlugin.java','utf8');
+assert.match(followupService,/!"fajr"\.equals\(activePrayerKey\)/,
+ 'Fajr follow-up must never play with other prayers');
+assert.match(followupService,/fajr_khayr_min_al_nawm/,
+ 'Fajr-only phrase needs its own dedicated raw resource');
+assert.match(followupService,/lastPlayedDay/,
+ 'Fajr-only phrase must be guarded against duplicate playback');
+assert.match(followupService,/now \+ 95000L >= deadline/,
+ 'Phrase must stop short of the actual iqama time');
+assert.match(followupScheduler,/intent\.putExtra\("scheduledAtMillis", triggerAtMillis\)/,
+ 'Fajr follow-up must know the actual alarm occurrence');
+assert.match(followupPlugin,/call\.getInt\("iqamaMinutes"\)/,
+ 'Fajr follow-up must use a real configured iqama interval');
+console.log('Verified once-per-Fajr special phrase is gated after adhan and before iqama.');
 console.log('APK module and offline audio safety gates passed.');
