@@ -49,8 +49,15 @@ public class AzanSoundPlugin extends Plugin {
         }
         try {
             Context context = getContext();
-            File file = new File(context.getCacheDir(), relativePath);
-            if (!file.exists() || file.length() <= 0) {
+            File cache = context.getCacheDir().getCanonicalFile();
+            File file = new File(cache, relativePath).getCanonicalFile();
+            // FileProvider must never expose arbitrary paths outside the app cache.
+            if (!file.getPath().startsWith(cache.getPath() + File.separator)
+                    || !file.getName().toLowerCase(java.util.Locale.ROOT).endsWith(".mp3")) {
+                call.reject("invalid cached adhan file path");
+                return;
+            }
+            if (!file.isFile() || file.length() <= 0) {
                 call.reject("cached file not found or empty");
                 return;
             }
