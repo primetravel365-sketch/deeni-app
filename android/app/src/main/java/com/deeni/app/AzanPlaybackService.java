@@ -40,6 +40,9 @@ public class AzanPlaybackService extends Service {
     private PowerManager.WakeLock wakeLock;
     private Handler failSafeHandler;
     private Runnable failSafeRunnable;
+    private boolean fajrFollowupStarted;
+    private String activePrayerKey;
+    private long scheduledAtMillis;
 
     @Override
     public IBinder onBind(Intent intent) {
@@ -58,6 +61,9 @@ public class AzanPlaybackService extends Service {
         // so that overlapping audio and stale timeout callbacks cannot accumulate.
         releasePlaybackResources();
 
+        fajrFollowupStarted = false;
+        activePrayerKey = intent != null ? intent.getStringExtra("key") : null;
+        scheduledAtMillis = intent != null ? intent.getLongExtra("scheduledAtMillis", 0L) : 0L;
         String prayerName = intent != null ? intent.getStringExtra("name") : null;
         String soundType = intent != null ? intent.getStringExtra("soundType") : null;
         String source = intent != null ? intent.getStringExtra("source") : null;
@@ -85,7 +91,7 @@ public class AzanPlaybackService extends Service {
             mediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
                 @Override
                 public void onCompletion(MediaPlayer mp) {
-                    stopSelfSafely();
+                    if (!tryStartFajrFollowup(mp)) stopSelfSafely();
                 }
             });
             mediaPlayer.setOnErrorListener(new MediaPlayer.OnErrorListener() {
@@ -110,6 +116,54 @@ public class AzanPlaybackService extends Service {
             stopSelfSafely();
         }
         return START_NOT_STICKY;
+    }
+
+    /**
+     * Plays the Fajr phrase once after the complete Fajr adhan and before
+     * the actual iqama, only if the user supplied a real iqama interval.
+     * Missing local audio means no follow-up; never starts a network stream.
+     */
+    private boolean tryStartFajrFollowup(MediaPlayer player) {
+        if (fajrFollowupStarted || !"fajr".equals(activePrayerKey)
+                || scheduledAtMillis <= 0L) return false;
+        int rawId = getResources().getIdentifier(
+                "fajr_khayr_min_al_nawm", "raw", getPackageName());
+        if (rawId == 0) return false;
+        android.content.SharedPreferences preferences =
+                getSharedPreferences("deeni_fajr_followup_v1", Context.MODE_PRIVATE);
+        int iqamaMinutes = preferences.getInt("iqamaMinutes", 0);
+        if (iqamaMinutes < 5 || iqamaMinutes > 180) return false;
+        long now = System.currentTimeMillis();
+        // 33.4 sec recording + at least 60 sec silence before iqama.
+        long deadline = scheduledAtMillis + iqamaMinutes * 60000L;
+        if (now < scheduledAtMillis || now + 95000L >= deadline) return false;
+        java.text.SimpleDateFormat formatter = new java.text.SimpleDateFormat(
+                "yyyy-MM-dd", java.util.Locale.ROOT);
+        String date = formatter.format(new java.util.Date(scheduledAtMillis));
+        if (date.equals(preferences.getString("lastPlayedDay", ""))) return false;
+        try {
+            // Persist before playback to prevent a duplicate on the same day.
+            if (!preferences.edit().putString("lastPlayedDay", date).commit()) return false;
+            fajrFollowupStarted = true;
+            player.reset();
+            player.setAudioAttributes(new AudioAttributes.Builder()
+                    .setUsage(AudioAttributes.USAGE_ALARM)
+                    .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
+                    .build());
+            player.setDataSource(getApplicationContext(), Uri.parse(
+                    "android.resource://" + getPackageName() + "/" + rawId));
+            player.setOnCompletionListener(mp -> stopSelfSafely());
+            player.setOnErrorListener((mp, what, extra) -> {
+                stopSelfSafely();
+                return true;
+            });
+            player.prepare();
+            player.start();
+            return true;
+        } catch (Exception e) {
+            stopSelfSafely();
+            return true;
+        }
     }
 
     private Uri resolveUri(String soundType, String source) {
