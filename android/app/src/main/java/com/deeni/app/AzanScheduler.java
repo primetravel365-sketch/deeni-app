@@ -25,6 +25,8 @@ class AzanScheduler {
     }
 
     static void persistLocation(Context context, double lat, double lon, int method) {
+        if (!Double.isFinite(lat) || !Double.isFinite(lon)
+                || lat < -90.0 || lat > 90.0 || lon < -180.0 || lon > 180.0) return;
         try {
             SharedPreferences sp = context.getSharedPreferences(LOC_PREFS, Context.MODE_PRIVATE);
             sp.edit().putFloat("lat", (float) lat).putFloat("lon", (float) lon).putInt("method", method).apply();
@@ -66,6 +68,10 @@ class AzanScheduler {
                 case "maghrib": decimalTime = times.maghrib; break;
                 case "isha": decimalTime = times.isha; break;
                 default: return;
+            }
+            if (Double.isNaN(decimalTime) || Double.isInfinite(decimalTime)) {
+                armTomorrowFromPersisted(context, key, name, soundType, source);
+                return;
             }
             int[] hms = PrayTimeCalculator.hms(decimalTime);
             persist(context, key, name, hms[0], hms[1], hms[2], soundType, source);
@@ -113,7 +119,7 @@ class AzanScheduler {
                         double lat = loc.getFloat("lat", 0f);
                         double lon = loc.getFloat("lon", 0f);
                         int[] hms = calculatePrayerHms(target, key, lat, lon, method);
-                        if (hms == null) continue;
+                        if (hms == null) throw new IllegalStateException("Invalid calculated prayer time");
                         Calendar trigger = (Calendar) target.clone();
                         trigger.set(Calendar.HOUR_OF_DAY, hms[0]);
                         trigger.set(Calendar.MINUTE, hms[1]);
@@ -122,7 +128,7 @@ class AzanScheduler {
                         if (trigger.getTimeInMillis() <= System.currentTimeMillis()) {
                             target.add(Calendar.DAY_OF_YEAR, 1);
                             hms = calculatePrayerHms(target, key, lat, lon, method);
-                            if (hms == null) continue;
+                            if (hms == null) throw new IllegalStateException("Invalid calculated prayer time");
                         }
                         persist(context, key, name, hms[0], hms[1], hms[2], soundType, source);
                         Integer reqCode = REQUEST_CODES.get(key);
