@@ -38,4 +38,14 @@ const radioReview=fs.readFileSync(path.join(base,'islamiyat-enhancements.js'),'u
 assert.match(radioReview,/player\.src=stations\[0\]\.url/,
  'Quran radio initial station must be assigned before playback');
 console.log('Verified notification permissions and Quran radio first-station initialization.');
+const soundPlugin=fs.readFileSync('android/app/src/main/java/com/deeni/app/AzanSoundPlugin.java','utf8');
+assert.match(soundPlugin,/call\.reject\("bundled adhan resource is missing:/,
+ 'The native scheduler must reject missing bundled voices before replacing alarms');
+assert.match(soundPlugin,/call\.reject\("adhan voice must be an offline content URI"\)/,
+ 'The native scheduler must reject internet voices before replacing alarms');
+assert.match(soundPlugin,/getCanonicalFile\(\)/,
+ 'Cached audio paths must be canonicalized to avoid traversal');
+assert.match(soundPlugin,/getPath\(\)\.startsWith\(cache\.getPath\(\) \+ File\.separator\)/,
+ 'Cached audio must remain inside the app cache directory');
+console.log('Verified native schedule rejection of invalid voices and path safety.');
 console.log('APK module and offline audio safety gates passed.');
