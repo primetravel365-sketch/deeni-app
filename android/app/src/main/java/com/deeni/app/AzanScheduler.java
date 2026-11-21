@@ -40,43 +40,48 @@ class AzanScheduler {
         armAlarm(context, reqCode, key, name, hour, minute, second, soundType, source);
     }
 
-    /** يعيد جدولة الصلاة القادمة (غدًا عادة) بحساب الوقت الحقيقي محليًا بدل تكرار نفس الساعة القديمة. */
+    /**
+     * Find the next prayer occurrence after an alarm was delivered.
+     * An alarm may be delivered after midnight (Doze / device time adjustments),
+     * so assuming "tomorrow" can inadvertently skip today's prayer.
+     */
     static void rescheduleWithRecalculation(Context context, String key, String name, String soundType, String source) {
         try {
             SharedPreferences loc = context.getSharedPreferences(LOC_PREFS, Context.MODE_PRIVATE);
-            if (!loc.contains("lat")) {
+            if (!loc.contains("lat") || !loc.contains("lon")) {
                 armTomorrowFromPersisted(context, key, name, soundType, source);
                 return;
             }
+
             double lat = loc.getFloat("lat", 0f);
             double lon = loc.getFloat("lon", 0f);
             int method = loc.getInt("method", 16);
+            long now = System.currentTimeMillis();
+            Calendar date = Calendar.getInstance();
 
-            Calendar cal = Calendar.getInstance();
-            cal.add(Calendar.DAY_OF_YEAR, 1); // نحسب لبكرة لأن ده بينادى بعد ما أذان اليوم يخلص
-            double tz = PrayTimeCalculator.timezoneOffsetHours(cal);
-
-            PrayTimeCalculator.Times times = PrayTimeCalculator.compute(
-                    cal.get(Calendar.YEAR), cal.get(Calendar.MONTH) + 1, cal.get(Calendar.DAY_OF_MONTH),
-                    lat, lon, tz, method, 1);
-
-            double decimalTime;
-            switch (key) {
-                case "fajr": decimalTime = times.fajr; break;
-                case "dhuhr": decimalTime = times.dhuhr; break;
-                case "asr": decimalTime = times.asr; break;
-                case "maghrib": decimalTime = times.maghrib; break;
-                case "isha": decimalTime = times.isha; break;
-                default: return;
+            // Check actual dates rather than reusing yesterday's clock time.
+            // We intentionally do not arm a second copy of a just-fired alarm.
+            for (int day = 0; day < 3; day++) {
+                int[] hms = calculatePrayerHms(date, key, lat, lon, method);
+                if (hms != null) {
+                    Calendar trigger = (Calendar) date.clone();
+                    trigger.set(Calendar.HOUR_OF_DAY, hms[0]);
+                    trigger.set(Calendar.MINUTE, hms[1]);
+                    trigger.set(Calendar.SECOND, hms[2]);
+                    trigger.set(Calendar.MILLISECOND, 0);
+                    if (trigger.getTimeInMillis() > now + 1000L) {
+                        persist(context, key, name, hms[0], hms[1], hms[2], soundType, source);
+                        Integer reqCode = REQUEST_CODES.get(key);
+                        if (reqCode != null) {
+                            armAlarmForDate(context, reqCode, key, name, hms[0], hms[1], hms[2],
+                                            soundType, source, date);
+                        }
+                        return;
+                    }
+                }
+                date.add(Calendar.DAY_OF_YEAR, 1);
             }
-            if (Double.isNaN(decimalTime) || Double.isInfinite(decimalTime)) {
-                armTomorrowFromPersisted(context, key, name, soundType, source);
-                return;
-            }
-            int[] hms = PrayTimeCalculator.hms(decimalTime);
-            persist(context, key, name, hms[0], hms[1], hms[2], soundType, source);
-            Integer reqCode = REQUEST_CODES.get(key);
-            if (reqCode != null) armAlarmForDate(context, reqCode, key, name, hms[0], hms[1], hms[2], soundType, source, cal);
+            armTomorrowFromPersisted(context, key, name, soundType, source);
         } catch (Exception ignore) {
             armTomorrowFromPersisted(context, key, name, soundType, source);
         }
