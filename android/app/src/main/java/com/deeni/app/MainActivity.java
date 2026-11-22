@@ -12,6 +12,7 @@ public class MainActivity extends BridgeActivity {
         // تسجيل إضافة (دفعة ٣٥): توليد رابط content:// آمن لملف صوت مؤذن حقيقي متنزّل على الجهاز،
         // عشان يُستخدم كصوت أذان فعلي في قنوات الإشعارات بدل الإعلان القصير الثابت
         registerPlugin(AzanSoundPlugin.class);
+        registerPlugin(CalendarExportPlugin.class);
         super.onCreate(savedInstanceState);
     }
 }
