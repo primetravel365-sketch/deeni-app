@@ -4,6 +4,10 @@
 const fs = require('node:fs');
 const file = 'www/index.html';
 let html = fs.readFileSync(file, 'utf8');
+if (html.includes('<!-- islamiyat-review-integrated-html -->')) {
+  console.log('Integrated review HTML is ready for Capacitor');
+  process.exit(0);
+}
 const patches = [
   {
     reason: 'Avoid scheduling iqama twice when notification preferences are saved',
