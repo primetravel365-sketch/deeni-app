@@ -4,10 +4,6 @@
 const fs = require('node:fs');
 const file = 'www/index.html';
 let html = fs.readFileSync(file, 'utf8');
-if (html.includes('<!-- islamiyat-review-integrated-html -->')) {
-  console.log('Integrated review HTML is ready for Capacitor');
-  process.exit(0);
-}
 const patches = [
   {
     reason: 'Avoid scheduling iqama twice when notification preferences are saved',
@@ -25,11 +21,23 @@ const patches = [
     newText: ''
   }
 ];
-for (const p of patches) {
-  const occurrences = html.split(p.oldText).length - 1;
-  if (occurrences !== 1) throw new Error('Patch assertion failed (' + p.reason + '): found ' + occurrences);
-  html = html.replace(p.oldText, p.newText);
-  console.log('Applied:', p.reason);
+if (html.startsWith('<!-- islamiyat-review-integrated-html -->')) {
+  const integratedChecks = [
+    patches[0].newText,
+    'iqamaMinutes:p.key==="fajr"&&p.iqamaEnabled!==false?Number(p.iqamah)||0:0,latitude:'
+  ];
+  if (patches.some(p => html.includes(p.oldText)) ||
+      integratedChecks.some(text => html.split(text).length !== 2)) {
+    throw new Error('Integrated HTML does not contain the expected prayer notification fixes');
+  }
+  console.log('Verified integrated prayer notification fixes');
+} else {
+  for (const p of patches) {
+    const occurrences = html.split(p.oldText).length - 1;
+    if (occurrences !== 1) throw new Error('Patch assertion failed (' + p.reason + '): found ' + occurrences);
+    html = html.replace(p.oldText, p.newText);
+    console.log('Applied:', p.reason);
+  }
 }
 // Attach optional radio/mosque features without rewriting the 6-MB minified bundle.
 const enhancementTag = '<script defer src="islamiyat-enhancements.js"></script>';

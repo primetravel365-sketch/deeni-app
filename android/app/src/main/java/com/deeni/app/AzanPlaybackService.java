@@ -132,18 +132,17 @@ public class AzanPlaybackService extends Service {
         android.content.SharedPreferences preferences =
                 getSharedPreferences("deeni_fajr_followup_v1", Context.MODE_PRIVATE);
         int iqamaMinutes = preferences.getInt("iqamaMinutes", 0);
-        if (iqamaMinutes < 5 || iqamaMinutes > 180) return false;
+        if (iqamaMinutes < 1 || iqamaMinutes > 180) return false;
         long now = System.currentTimeMillis();
-        // 33.4 sec recording + at least 60 sec silence before iqama.
+        // Allow the bundled 33.4-second clip to finish before iqama.
         long deadline = scheduledAtMillis + iqamaMinutes * 60000L;
-        if (now < scheduledAtMillis || now + 95000L >= deadline) return false;
+        if (now < scheduledAtMillis) return false;
+        if (now + 95000L >= deadline && now + 35000L >= deadline) return false;
         java.text.SimpleDateFormat formatter = new java.text.SimpleDateFormat(
                 "yyyy-MM-dd", java.util.Locale.ROOT);
         String date = formatter.format(new java.util.Date(scheduledAtMillis));
         if (date.equals(preferences.getString("lastPlayedDay", ""))) return false;
         try {
-            // Persist before playback to prevent a duplicate on the same day.
-            if (!preferences.edit().putString("lastPlayedDay", date).commit()) return false;
             fajrFollowupStarted = true;
             player.reset();
             player.setAudioAttributes(new AudioAttributes.Builder()
@@ -158,6 +157,11 @@ public class AzanPlaybackService extends Service {
                 return true;
             });
             player.prepare();
+            if (System.currentTimeMillis() + player.getDuration() + 500L >= deadline
+                    || !preferences.edit().putString("lastPlayedDay", date).commit()) {
+                stopSelfSafely();
+                return true;
+            }
             player.start();
             return true;
         } catch (Exception e) {
