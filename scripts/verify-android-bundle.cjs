@@ -28,7 +28,15 @@ assert.match(source,/getIdentifier\(source, "raw", getPackageName\(\)\)/,
 const audioDir='android/app/src/main/res/raw';
 const files=fs.readdirSync(audioDir);
 const voices=files.filter(x=>/^(azan_|sheikh_|yusuf_).*\.mp3$/i.test(x));
-assert.ok(voices.length>=10,'Unexpected missing bundled muezzin files');
+assert.ok(voices.length>=7,'Unexpected missing bundled muezzin files');
+const removedVoices = ['sheikh_ahmed_nafees', 'sheikh_hafiz_ozcan', 'sheikh_abdulghaffar', 'yusuf_islam', 'sheikh_saber'];
+for (const key of removedVoices) {
+  assert.ok(!html.includes(key), 'Removed voice is still linked: '+key);
+  for (const directory of [audioDir, path.join(base,'sounds/muezzins')]) {
+    assert.ok(!fs.existsSync(path.join(directory,key+'.mp3')), 'Removed voice is still bundled: '+key);
+  }
+}
+assert.ok(!fs.existsSync(path.join(base,'index.before_offline_muezzins.html')), 'Old preview is still bundled');
 for(const file of voices){
   const stat=fs.statSync(path.join(audioDir,file));
   assert.ok(stat.size>10000,'Empty or invalid voice resource: '+file);
@@ -76,3 +84,4 @@ assert.match(followupPlugin,/call\.getInt\("iqamaMinutes"\)/,
  'Fajr follow-up must use a real configured iqama interval');
 console.log('Verified once-per-Fajr special phrase is gated after adhan and before iqama.');
 console.log('APK module and offline audio safety gates passed.');
+
