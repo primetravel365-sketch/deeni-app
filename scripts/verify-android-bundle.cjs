@@ -7,7 +7,8 @@ const html=fs.readFileSync(path.join(base,'index.html'),'utf8');
 const scripts=['islamiyat-enhancements.js','islamiyat-ui-review.js','islamiyat-content-review.js'];
 const integrated=html.includes('<!-- islamiyat-review-integrated-html -->');
 if(integrated){
-  for(const id of ['home-daily-dua','ramadan-countdown','mushaf-reader']){
+  assert.ok(!html.includes('id="home-daily-dua"'), 'Removed daily dua control must stay absent');
+  for(const id of ['ramadan-countdown','mushaf-reader']){
     assert.equal(html.split('id="'+id+'"').length-1,1,'Missing or duplicated screen control '+id);
   }
   assert.match(html,/scheduleFullAzan/,'Native adhan scheduling is missing');
