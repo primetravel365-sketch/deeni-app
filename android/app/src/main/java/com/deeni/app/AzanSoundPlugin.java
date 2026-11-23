@@ -140,10 +140,35 @@ public class AzanSoundPlugin extends Plugin {
                 AzanScheduler.setFajrIqamaMinutes(getContext(),
                         iqamaMinutes == null ? 0 : iqamaMinutes);
             }
+            if (!AzanScheduler.canScheduleExactly(getContext())) {
+                call.reject("EXACT_ALARM_PERMISSION");
+                return;
+            }
+            if (key.startsWith("iqama_")) {
+                Integer offset = call.getInt("iqamaMinutes", 0);
+                if (offset == null || offset < 1 || offset > 180) {
+                    call.reject("invalid iqama interval");
+                    return;
+                }
+                AzanScheduler.setIqamaOffset(getContext(), key, offset);
+            }
             AzanScheduler.schedule(getContext(), key, name, hour, minute, second == null ? 0 : second, soundType, source);
             call.resolve();
         } catch (Exception e) {
             call.reject("failed to schedule full azan: " + e.getMessage());
+        }
+    }
+
+    @PluginMethod
+    public void openExactAlarmSettings(PluginCall call) {
+        try {
+            if (android.os.Build.VERSION.SDK_INT >= 31 && !AzanScheduler.canScheduleExactly(getContext())) {
+                getActivity().startActivity(new Intent(android.provider.Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM,
+                        Uri.parse("package:" + getContext().getPackageName())));
+            }
+            call.resolve();
+        } catch (Exception error) {
+            call.reject("Unable to open alarm settings", error);
         }
     }
 

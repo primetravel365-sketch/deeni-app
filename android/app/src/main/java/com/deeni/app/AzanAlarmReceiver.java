@@ -24,21 +24,25 @@ public class AzanAlarmReceiver extends BroadcastReceiver {
         String alarmKey = intent.getStringExtra("key");
         if (alarmKey == null || alarmKey.isEmpty()) return;
         long now = System.currentTimeMillis();
-        SharedPreferences guard = context.getSharedPreferences("deeni_azan_receiver_guard_v1", Context.MODE_PRIVATE);
-        long last = guard.getLong(alarmKey, 0L);
-        if (last > 0L && now >= last && now - last < 45000L) return;
-        guard.edit().putLong(alarmKey, now).commit();
+        long scheduled = intent.getLongExtra("scheduledAtMillis", 0L);
+        if (scheduled > 0L && now >= scheduled && now - scheduled <= 30000L) {
+            SharedPreferences guard = context.getSharedPreferences("deeni_azan_receiver_guard_v1", Context.MODE_PRIVATE);
+            long last = guard.getLong(alarmKey, 0L);
+            if (last == scheduled) return;
+            guard.edit().putLong(alarmKey, scheduled).commit();
 
-        try {
-            Intent serviceIntent = new Intent(context, AzanPlaybackService.class);
-            serviceIntent.putExtras(intent);
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                context.startForegroundService(serviceIntent);
-            } else {
-                context.startService(serviceIntent);
+            try {
+                Intent serviceIntent = new Intent(context, AzanPlaybackService.class);
+                serviceIntent.putExtras(intent);
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    context.startForegroundService(serviceIntent);
+                } else {
+                    context.startService(serviceIntent);
+                }
+            } catch (Exception ignore) {
+                // فشل بدء الخدمة (نادر) — لا داعي يعطّل إعادة جدولة الغد
             }
-        } catch (Exception ignore) {
-            // فشل بدء الخدمة (نادر) — لا داعي يعطّل إعادة جدولة الغد
+
         }
 
         try {

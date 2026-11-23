@@ -215,10 +215,10 @@ public class AzanPlaybackService extends Service {
                 | (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S ? PendingIntent.FLAG_IMMUTABLE : 0);
         PendingIntent stopPending = PendingIntent.getService(this, 7802, stopIntent, piFlags);
 
-        String title = prayerName != null ? ("أذان " + prayerName + " 🕌") : "أذان 🕌";
+        String title = prayerName != null ? ((activePrayerKey != null && activePrayerKey.startsWith("iqama_") ? "إقامة " : "أذان ") + prayerName + " 🕌") : "أذان 🕌";
         return new NotificationCompat.Builder(this, CHANNEL_ID)
                 .setContentTitle(title)
-                .setContentText("جاري تشغيل الأذان الكامل — اضغط إيقاف للسكوت")
+                .setContentText("جاري تشغيل تنبيه الصلاة — اضغط إيقاف")
                 .setSmallIcon(getApplicationInfo().icon)
                 .setOngoing(true)
                 .setContentIntent(stopPending)

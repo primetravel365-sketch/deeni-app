@@ -18,10 +18,15 @@ class AzanScheduler {
     private static final Map<String, Integer> REQUEST_CODES = new HashMap<>();
     static {
         REQUEST_CODES.put("fajr", 9001);
+        REQUEST_CODES.put("iqama_fajr", 9101);
         REQUEST_CODES.put("dhuhr", 9002);
+        REQUEST_CODES.put("iqama_dhuhr", 9102);
         REQUEST_CODES.put("asr", 9003);
+        REQUEST_CODES.put("iqama_asr", 9103);
         REQUEST_CODES.put("maghrib", 9004);
+        REQUEST_CODES.put("iqama_maghrib", 9104);
         REQUEST_CODES.put("isha", 9005);
+        REQUEST_CODES.put("iqama_isha", 9105);
     }
 
     // The Fajr follow-up is opt-in and needs a confirmed iqama interval.
@@ -77,6 +82,7 @@ class AzanScheduler {
                     trigger.set(Calendar.MINUTE, hms[1]);
                     trigger.set(Calendar.SECOND, hms[2]);
                     trigger.set(Calendar.MILLISECOND, 0);
+                    trigger.add(Calendar.MINUTE, offset(context, key));
                     if (trigger.getTimeInMillis() > now + 1000L) {
                         persist(context, key, name, hms[0], hms[1], hms[2], soundType, source);
                         Integer reqCode = REQUEST_CODES.get(key);
@@ -138,6 +144,7 @@ class AzanScheduler {
                         trigger.set(Calendar.MINUTE, hms[1]);
                         trigger.set(Calendar.SECOND, hms[2]);
                         trigger.set(Calendar.MILLISECOND, 0);
+                    trigger.add(Calendar.MINUTE, offset(context, key));
                         if (trigger.getTimeInMillis() <= System.currentTimeMillis()) {
                             target.add(Calendar.DAY_OF_YEAR, 1);
                             hms = calculatePrayerHms(target, key, lat, lon, method);
@@ -174,7 +181,7 @@ class AzanScheduler {
                 date.get(Calendar.YEAR), date.get(Calendar.MONTH) + 1,
                 date.get(Calendar.DAY_OF_MONTH), lat, lon, tz, method, 1);
         double time;
-        switch (key) {
+        switch (key.startsWith("iqama_") ? key.substring(6) : key) {
             case "fajr": time = times.fajr; break;
             case "dhuhr": time = times.dhuhr; break;
             case "asr": time = times.asr; break;
@@ -184,6 +191,19 @@ class AzanScheduler {
         }
         if (Double.isNaN(time) || Double.isInfinite(time)) return null;
         return PrayTimeCalculator.hms(time);
+    }
+
+    static boolean canScheduleExactly(Context context) {
+        AlarmManager manager = context.getSystemService(AlarmManager.class);
+        return manager != null && (Build.VERSION.SDK_INT < Build.VERSION_CODES.S || manager.canScheduleExactAlarms());
+    }
+
+    static void setIqamaOffset(Context context, String key, int minutes) {
+        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().putInt(key + "_offset", minutes).apply();
+    }
+
+    private static int offset(Context context, String key) {
+        return context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getInt(key + "_offset", 0);
     }
 
     static void cancelAll(Context context) {
@@ -215,6 +235,7 @@ class AzanScheduler {
         target.set(Calendar.MINUTE, minute);
         target.set(Calendar.SECOND, second);
         target.set(Calendar.MILLISECOND, 0);
+        target.add(Calendar.MINUTE, offset(context, key));
         armAlarmAt(context, reqCode, key, name, hour, minute, second, soundType, source,
                    target.getTimeInMillis());
     }
@@ -229,6 +250,7 @@ class AzanScheduler {
             cal.set(Calendar.MINUTE, minute);
             cal.set(Calendar.SECOND, second);
             cal.set(Calendar.MILLISECOND, 0);
+        cal.add(Calendar.MINUTE, offset(context, key));
             if (cal.getTimeInMillis() <= System.currentTimeMillis()) {
                 cal.add(Calendar.DAY_OF_YEAR, 1);
             }
@@ -258,14 +280,8 @@ class AzanScheduler {
             int flags = PendingIntent.FLAG_UPDATE_CURRENT | (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S ? PendingIntent.FLAG_IMMUTABLE : 0);
             PendingIntent pi = PendingIntent.getBroadcast(context, reqCode, intent, flags);
 
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                if (am.canScheduleExactAlarms()) {
-                    am.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerAtMillis, pi);
-                } else {
-                    am.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerAtMillis, pi);
-                }
-            } else {
-                am.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerAtMillis, pi);
+            if (canScheduleExactly(context)) {
+                am.setAlarmClock(new AlarmManager.AlarmClockInfo(triggerAtMillis, null), pi);
             }
         } catch (Exception ignore) {}
     }

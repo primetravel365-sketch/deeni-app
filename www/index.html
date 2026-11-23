@@ -1,5 +1,11 @@
 <!-- islamiyat-review-integrated-html -->
 <!DOCTYPE html><html lang="ar" dir="rtl"><head><style>
+#quick-menu-open{width:100%;margin:10px 0;font:inherit;cursor:pointer}
+#quick-menu{box-sizing:border-box;width:min(92vw,440px);max-height:78vh;margin:auto;padding:16px;border:1px solid var(--gold);border-radius:18px;background:var(--bg);color:var(--text)}
+#quick-menu::backdrop{background:#0008}
+#quick-menu .quick-grid{margin:0}
+#quick-menu #isl-content26-nav{position:static!important;flex-wrap:wrap;margin-top:12px}
+</style><style>
 #ramadan-countdown{position:absolute;z-index:6;top:10px;left:12px;min-width:95px;padding:6px 11px;text-align:center;border:1px solid #c89e4b;border-radius:15px;background:rgba(255,246,223,.72);backdrop-filter:blur(3px);color:#123629!important;line-height:1.2;pointer-events:none}
 .app-night-mode #ramadan-countdown{background:rgba(16,42,35,.72);color:#ffe5a0!important}
 #ramadan-countdown strong,#ramadan-countdown output,#ramadan-countdown small{display:block;color:inherit!important}
@@ -1592,8 +1598,10 @@
         </div>
 
 
-        <div class="section-label" data-i18n="quick_access">وصول سريع</div>
-        <div class="quick-grid">
+        <button type="button" class="cal-calc-btn" id="quick-menu-open">الوصول السريع ▾</button>
+<dialog id="quick-menu" aria-labelledby="quick-menu-title">
+<div class="top-row"><h2 id="quick-menu-title">الوصول السريع</h2><button type="button" class="back-btn" id="quick-menu-close" aria-label="إغلاق">×</button></div>
+<div class="quick-grid">
           <button type="button" class="quick-item" id="home-daily-dua"><span class="quick-icon" aria-hidden="true">🤲</span><span>دعاء اليوم</span></button>
           <div class="quick-item" tabindex="0" role="button" onclick="goTab('adhkar')"><div class="quick-icon">📿</div><span>المسبحة</span></div>
           <div class="quick-item" tabindex="0" role="button" onclick="openAdhkarLibrary()"><div class="quick-icon">🤲</div><span>الأدعية والإذكار</span></div>
@@ -1606,7 +1614,7 @@
           <div class="quick-item" tabindex="0" role="button" onclick="openHomeRadios()"><div class="quick-icon">📻</div><span>الإذاعات القرآنية</span></div>
           <div class="quick-item" tabindex="0" role="button" onclick="openMoodToday()"><div class="quick-icon">🌙</div><span>حالتي اليوم</span></div>
           <div class="quick-item" tabindex="0" role="button" onclick="openAskIslamiyat()"><div class="quick-icon">🧠</div><span>اسأل إسلاميات</span></div>
-        </div>
+        </div></dialog>
 
         <div class="section-label">ذِكر اليوم</div>
         <div class="card" style="margin-bottom:20px;">
@@ -2629,22 +2637,35 @@ async function rebuildPrayerAlarms(){
  if(!adhanNotificationsEnabled)return;
  const pending=[];
  const problems=[];
+ let exactPermissionMissing=false;
  for(const [index,p] of prayerSchedule.entries()){
-  if(p.key==="shuroq"||p.adhanNowEnabled===false)continue;
+  if(p.key==="shuroq")continue;
   const at=new Date();at.setHours(p.h,p.m,0,0);
   if(at<=new Date())at.setDate(at.getDate()+1);
   const reminder=new Date(at.getTime()-300000);
-  if(reminder>Date.now())pending.push({id:1+index,title:"اقترب أذان "+p.name,body:"باقي خمس دقائق",schedule:{at:reminder,allowWhileIdle:true}});
+  if(p.adhanNowEnabled!==false&&reminder>Date.now())pending.push({id:1+index,title:"اقترب أذان "+p.name,body:"باقي خمس دقائق",schedule:{at:reminder,allowWhileIdle:true}});
   const chosen=selectedMuezzin[p.key],voice=muezzins[chosen];
   const alarm={key:p.key,name:p.name,hour:p.h,minute:p.m,second:0,iqamaMinutes:p.key==="fajr"?p.iqamah:0,latitude:userCoords?.lat,longitude:userCoords?.lon,method:aladhanMethodIds[selectedMethod]};
+  if(sound&&p.iqamaEnabled!==false&&Number(p.iqamah)>0){
+   try{await sound.scheduleFullAzan({...alarm,key:"iqama_"+p.key,iqamaMinutes:Number(p.iqamah),soundType:"bundled",source:"iqama_real_moamen"})}
+   catch(error){if(String(error?.message).includes("EXACT_ALARM_PERMISSION"))exactPermissionMissing=true;else problems.push("إقامة "+p.name)}
+  }
+  if(p.adhanNowEnabled===false)continue;
   try{
    if(!sound||!voice)throw Error();
    try{await sound.scheduleFullAzan({...alarm,soundType:"bundled",source:voice.rawKey})}
-   catch{const uri=await ensureRealAzanSoundDownloaded(chosen);if(!uri)throw Error();await sound.scheduleFullAzan({...alarm,soundType:"real",source:uri})}
-  }catch{problems.push(p.name);pending.push({id:11+index,title:"حان أذان "+p.name,body:"تعذر تشغيل تسجيل المؤذن المختار",schedule:{at,allowWhileIdle:true}})}
+   catch(error){if(String(error?.message).includes("EXACT_ALARM_PERMISSION"))throw error;const uri=await ensureRealAzanSoundDownloaded(chosen);if(!uri)throw Error();await sound.scheduleFullAzan({...alarm,soundType:"real",source:uri})}
+  }catch(error){if(String(error?.message).includes("EXACT_ALARM_PERMISSION"))exactPermissionMissing=true;problems.push(p.name);pending.push({id:11+index,title:"حان أذان "+p.name,body:"تعذر تشغيل تسجيل المؤذن المختار",schedule:{at,allowWhileIdle:true}})}
  }
  if(pending.length)await notifications.schedule({notifications:pending});
- await scheduleIqamaNotifications();
+ if(!sound)await scheduleIqamaNotifications();
+ if(exactPermissionMissing){
+  showToast("اسمح بالمنبّهات الدقيقة في إعدادات أندرويد ثم ارجع للتطبيق");
+  if(!sessionStorage.getItem("asked-exact-alarms")){
+   sessionStorage.setItem("asked-exact-alarms","1");
+   await sound.openExactAlarmSettings().catch(()=>{});
+  }
+ }
  if(problems.length)showToast("تعذرت جدولة صوت المؤذن لـ "+problems.join("، "));
 }
 const ADHAN_FULL_AZAN_GAP_SEC=4;const IQAMA_CHANNEL_VERSION="v3";async function createIqamaChannel(){const t=getNativeNotif();if(t)try{await t.createChannel({id:`iqama_ch_${IQAMA_CHANNEL_VERSION}`,name:"تنبيه وقت الإقامة",description:"صوت حقيقي (مش آلي) عند حلول وقت الإقامة لكل صلاة (بعد الفارق المحدد من وقت الأذان)",importance:5,visibility:1,vibration:!0,sound:"iqama_real_moamen.mp3"})}catch(t){}}async function scheduleIqamaNotifications(){const t=getNativeNotif();if(t&&adhanNotificationsEnabled){try{await t.cancel({notifications:IQAMA_NOTIF_IDS.map(t=>({id:t}))});const e=[];let a=0;prayerSchedule.forEach(t=>{if("shuroq"===t.key||null==t.iqamah)return;if(!1===t.iqamaEnabled)return;const i=addMinutesHM(t.h,t.m,t.iqamah);e.push({id:300+a++,title:`حان الآن موعد إقامة صلاة ${t.name} 🕌`,body:`انتهى وقت التنبيه المحدد — حان الآن وقت إقامة صلاة ${t.name}`,sound:"iqama_real_moamen.mp3",channelId:`iqama_ch_${IQAMA_CHANNEL_VERSION}`,schedule:{on:{year:nextOccurrenceYMD(i.h,i.m,0).y,month:nextOccurrenceYMD(i.h,i.m,0).mo,day:nextOccurrenceYMD(i.h,i.m,0).d,hour:i.h,minute:i.m},allowWhileIdle:!0}})}),e.length&&await t.schedule({notifications:e})}catch(t){}try{await t.cancel({notifications:BEFORE_IQAMA_NOTIF_IDS.map(t=>({id:t}))});const e=[];let a=0;prayerSchedule.forEach(t=>{if("shuroq"===t.key||null==t.iqamah)return;if(!1===t.beforeIqamaEnabled)return;const i="number"==typeof t.beforeIqamaMins&&t.beforeIqamaMins>0?t.beforeIqamaMins:0;if(i<=0||i>=t.iqamah)return;const n=addMinutesHM(t.h,t.m,t.iqamah),o=minusMinutesHM(n.h,n.m,i);e.push({id:350+a++,title:`اقترب موعد إقامة ${t.name} 🕌`,body:`باقي ${toArabicDigits(i)} ${1===i?"دقيقة":2===i?"دقيقتين":"دقايق"} على دخول وقت إقامة صلاة ${t.name}`,schedule:{on:{year:nextOccurrenceYMD(o.h,o.m,0).y,month:nextOccurrenceYMD(o.h,o.m,0).mo,day:nextOccurrenceYMD(o.h,o.m,0).d,hour:o.h,minute:o.m},allowWhileIdle:!0}})}),e.length&&await t.schedule({notifications:e})}catch(t){}}}function openPrayerNotifSettings(){renderPrayerNotifRows();renderPeriodicReminderOptions();const t=document.getElementById("prayer-notif-settings-wrap");t.classList.add("show"),t.setAttribute("aria-hidden","false")}function closePrayerNotifSettings(){const t=document.getElementById("prayer-notif-settings-wrap");t.classList.remove("show"),t.setAttribute("aria-hidden","true")}
@@ -3166,7 +3187,7 @@ const css=document.createElement('style');css.textContent=`
 #isl-content26-dialog a{color:#f9dd91}
 `;document.head.append(css);
 const create=(tag,t)=>{const e=document.createElement(tag);if(t!==undefined)e.textContent=t;return e};
-const nav=create('div');nav.id='isl-content26-nav';document.body.append(nav);
+const nav=create('div');nav.id='isl-content26-nav';document.getElementById('quick-menu').append(nav);
 const overlay=create('div');overlay.id='isl-content26-dialog';overlay.hidden=true;overlay.setAttribute('role','dialog');overlay.setAttribute('aria-modal','true');const article=create('article');overlay.append(article);document.body.append(overlay);
 let previousFocus=null;
 function close(){overlay.hidden=true;previousFocus?.focus?.()}
@@ -3310,4 +3331,12 @@ new MutationObserver(()=>{if(pending)return;pending=true;setTimeout(()=>{pending
  const days=(Date.UTC(2027,1,8)-Date.UTC(date.year,date.month-1,date.day))/86400000;
  document.getElementById('ramadan-days').textContent=new Intl.NumberFormat('ar').format(Math.max(0,days));
 }
-refresh();setInterval(refresh,1000);document.addEventListener("visibilitychange",refresh);})();</script></body></html>
+refresh();setInterval(refresh,1000);document.addEventListener("visibilitychange",refresh);})();</script><script>
+(()=>{
+ const menu=document.getElementById("quick-menu");
+ document.getElementById("quick-menu-open").onclick=()=>menu.showModal();
+ document.getElementById("quick-menu-close").onclick=()=>menu.close();
+ menu.addEventListener("click",event=>{if(event.target.closest(".quick-item, #quick-menu-close, #isl-content26-nav button")||event.target===menu)menu.close()},true);
+ document.addEventListener("visibilitychange",()=>{if(!document.hidden&&adhanNotificationsEnabled&&getNativeAzanSound())scheduleAdhanNotifications()});
+})();
+</script></body></html>
