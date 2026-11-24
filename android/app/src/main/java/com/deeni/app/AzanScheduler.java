@@ -19,14 +19,19 @@ class AzanScheduler {
     static {
         REQUEST_CODES.put("fajr", 9001);
         REQUEST_CODES.put("iqama_fajr", 9101);
+        REQUEST_CODES.put("reminder_fajr", 9201);
         REQUEST_CODES.put("dhuhr", 9002);
         REQUEST_CODES.put("iqama_dhuhr", 9102);
+        REQUEST_CODES.put("reminder_dhuhr", 9202);
         REQUEST_CODES.put("asr", 9003);
         REQUEST_CODES.put("iqama_asr", 9103);
+        REQUEST_CODES.put("reminder_asr", 9203);
         REQUEST_CODES.put("maghrib", 9004);
         REQUEST_CODES.put("iqama_maghrib", 9104);
+        REQUEST_CODES.put("reminder_maghrib", 9204);
         REQUEST_CODES.put("isha", 9005);
         REQUEST_CODES.put("iqama_isha", 9105);
+        REQUEST_CODES.put("reminder_isha", 9205);
     }
 
     // The Fajr follow-up is opt-in and needs a confirmed iqama interval.
@@ -82,7 +87,7 @@ class AzanScheduler {
                     trigger.set(Calendar.MINUTE, hms[1]);
                     trigger.set(Calendar.SECOND, hms[2]);
                     trigger.set(Calendar.MILLISECOND, 0);
-                    trigger.add(Calendar.MINUTE, offset(context, key));
+                    applyAlarmOffset(context, key, trigger);
                     if (trigger.getTimeInMillis() > now + 1000L) {
                         persist(context, key, name, hms[0], hms[1], hms[2], soundType, source);
                         Integer reqCode = REQUEST_CODES.get(key);
@@ -144,7 +149,7 @@ class AzanScheduler {
                         trigger.set(Calendar.MINUTE, hms[1]);
                         trigger.set(Calendar.SECOND, hms[2]);
                         trigger.set(Calendar.MILLISECOND, 0);
-                    trigger.add(Calendar.MINUTE, offset(context, key));
+                    applyAlarmOffset(context, key, trigger);
                         if (trigger.getTimeInMillis() <= System.currentTimeMillis()) {
                             target.add(Calendar.DAY_OF_YEAR, 1);
                             hms = calculatePrayerHms(target, key, lat, lon, method);
@@ -181,7 +186,9 @@ class AzanScheduler {
                 date.get(Calendar.YEAR), date.get(Calendar.MONTH) + 1,
                 date.get(Calendar.DAY_OF_MONTH), lat, lon, tz, method, 1);
         double time;
-        switch (key.startsWith("iqama_") ? key.substring(6) : key) {
+        String prayerKey = key.startsWith("reminder_") ? key.substring(9)
+                : key.startsWith("iqama_") ? key.substring(6) : key;
+        switch (prayerKey) {
             case "fajr": time = times.fajr; break;
             case "dhuhr": time = times.dhuhr; break;
             case "asr": time = times.asr; break;
@@ -200,6 +207,23 @@ class AzanScheduler {
 
     static void setIqamaOffset(Context context, String key, int minutes) {
         context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().putInt(key + "_offset", minutes).apply();
+    }
+
+    static int announcementLeadMillis(String key) {
+        if (key == null) return 0;
+        switch (key) {
+            case "fajr": return 3657 + 2000;
+            case "dhuhr": return 3644 + 2000;
+            case "asr": return 3601 + 2000;
+            case "maghrib": return 3670 + 2000;
+            case "isha": return 3763 + 2000;
+            default: return 0;
+        }
+    }
+
+    private static void applyAlarmOffset(Context context, String key, Calendar time) {
+        time.add(Calendar.MINUTE, offset(context, key));
+        time.add(Calendar.MILLISECOND, -announcementLeadMillis(key));
     }
 
     private static int offset(Context context, String key) {
@@ -235,7 +259,7 @@ class AzanScheduler {
         target.set(Calendar.MINUTE, minute);
         target.set(Calendar.SECOND, second);
         target.set(Calendar.MILLISECOND, 0);
-        target.add(Calendar.MINUTE, offset(context, key));
+        applyAlarmOffset(context, key, target);
         armAlarmAt(context, reqCode, key, name, hour, minute, second, soundType, source,
                    target.getTimeInMillis());
     }
@@ -250,7 +274,7 @@ class AzanScheduler {
             cal.set(Calendar.MINUTE, minute);
             cal.set(Calendar.SECOND, second);
             cal.set(Calendar.MILLISECOND, 0);
-        cal.add(Calendar.MINUTE, offset(context, key));
+        applyAlarmOffset(context, key, cal);
             if (cal.getTimeInMillis() <= System.currentTimeMillis()) {
                 cal.add(Calendar.DAY_OF_YEAR, 1);
             }
@@ -276,6 +300,7 @@ class AzanScheduler {
             intent.putExtra("soundType", soundType);
             intent.putExtra("source", source);
             intent.putExtra("scheduledAtMillis", triggerAtMillis);
+            intent.putExtra("prayerAtMillis", triggerAtMillis + announcementLeadMillis(key));
 
             int flags = PendingIntent.FLAG_UPDATE_CURRENT | (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S ? PendingIntent.FLAG_IMMUTABLE : 0);
             PendingIntent pi = PendingIntent.getBroadcast(context, reqCode, intent, flags);

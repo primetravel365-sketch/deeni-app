@@ -63,7 +63,8 @@ public class AzanPlaybackService extends Service {
 
         fajrFollowupStarted = false;
         activePrayerKey = intent != null ? intent.getStringExtra("key") : null;
-        scheduledAtMillis = intent != null ? intent.getLongExtra("scheduledAtMillis", 0L) : 0L;
+        scheduledAtMillis = intent == null ? 0L : intent.getLongExtra("prayerAtMillis",
+                intent.getLongExtra("scheduledAtMillis", 0L));
         String prayerName = intent != null ? intent.getStringExtra("name") : null;
         String soundType = intent != null ? intent.getStringExtra("soundType") : null;
         String source = intent != null ? intent.getStringExtra("source") : null;
@@ -73,49 +74,72 @@ public class AzanPlaybackService extends Service {
             startForeground(NOTIF_ID, buildNotification(prayerName));
         } catch (Exception ignore) {}
 
-        try {
-            Uri uri = resolveUri(soundType, source);
-            if (uri == null) {
-                stopSelfSafely();
-                return START_NOT_STICKY;
+        Uri adhan = resolveUri(soundType, source);
+        if (adhan == null) {
+            stopSelfSafely();
+            return START_NOT_STICKY;
+        }
+        acquireWakeLock();
+        failSafeHandler = new Handler(Looper.getMainLooper());
+        failSafeRunnable = this::stopSelfSafely;
+        failSafeHandler.postDelayed(failSafeRunnable, MAX_DURATION_MS);
+        playPrayerSequence(adhan);
+        return START_NOT_STICKY;
+    }
+
+    private void playPrayerSequence(Uri adhan) {
+        int lead = AzanScheduler.announcementLeadMillis(activePrayerKey);
+        Uri announcement = lead == 0 ? null : resolveUri("bundled", "adhan_" + activePrayerKey + "_now");
+        long remaining = Math.max(0L, scheduledAtMillis - System.currentTimeMillis());
+        if (announcement == null || remaining < lead - 350L) {
+            if (lead != 0 && remaining > 0L) {
+                failSafeHandler.postDelayed(() -> startAdhan(adhan), remaining);
+            } else {
+                startAdhan(adhan);
             }
-
-            acquireWakeLock();
-
-            mediaPlayer = new MediaPlayer();
-            mediaPlayer.setAudioAttributes(new AudioAttributes.Builder()
-                    .setUsage(AudioAttributes.USAGE_ALARM)
-                    .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
-                    .build());
-            mediaPlayer.setDataSource(getApplicationContext(), uri);
-            mediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
-                @Override
-                public void onCompletion(MediaPlayer mp) {
-                    if (!tryStartFajrFollowup(mp)) stopSelfSafely();
-                }
+            return;
+        }
+        try {
+            preparePlayer(announcement);
+            mediaPlayer.setOnCompletionListener(player ->
+                    failSafeHandler.postDelayed(() -> startAdhan(adhan), 2000L));
+            mediaPlayer.setOnErrorListener((player, what, extra) -> {
+                failSafeHandler.postDelayed(() -> startAdhan(adhan),
+                        Math.max(0L, scheduledAtMillis - System.currentTimeMillis()));
+                return true;
             });
-            mediaPlayer.setOnErrorListener(new MediaPlayer.OnErrorListener() {
-                @Override
-                public boolean onError(MediaPlayer mp, int what, int extra) {
-                    stopSelfSafely();
-                    return true;
-                }
-            });
-            mediaPlayer.prepare();
             mediaPlayer.start();
+        } catch (Exception error) {
+            failSafeHandler.postDelayed(() -> startAdhan(adhan),
+                    Math.max(0L, scheduledAtMillis - System.currentTimeMillis()));
+        }
+    }
 
-            failSafeHandler = new Handler(Looper.getMainLooper());
-            failSafeRunnable = new Runnable() {
-                @Override
-                public void run() {
-                    stopSelfSafely();
-                }
-            };
-            failSafeHandler.postDelayed(failSafeRunnable, MAX_DURATION_MS);
-        } catch (Exception e) {
+    private void preparePlayer(Uri source) throws Exception {
+        if (mediaPlayer != null) mediaPlayer.release();
+        mediaPlayer = new MediaPlayer();
+        mediaPlayer.setAudioAttributes(new AudioAttributes.Builder()
+                .setUsage(AudioAttributes.USAGE_ALARM)
+                .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
+                .build());
+        mediaPlayer.setDataSource(getApplicationContext(), source);
+        mediaPlayer.prepare();
+    }
+
+    private void startAdhan(Uri source) {
+        try {
+            preparePlayer(source);
+            mediaPlayer.setOnCompletionListener(player -> {
+                if (!tryStartFajrFollowup(player)) stopSelfSafely();
+            });
+            mediaPlayer.setOnErrorListener((player, what, extra) -> {
+                stopSelfSafely();
+                return true;
+            });
+            mediaPlayer.start();
+        } catch (Exception error) {
             stopSelfSafely();
         }
-        return START_NOT_STICKY;
     }
 
     /**
@@ -234,7 +258,7 @@ public class AzanPlaybackService extends Service {
     private void releasePlaybackResources() {
         try {
             if (failSafeHandler != null && failSafeRunnable != null) {
-                failSafeHandler.removeCallbacks(failSafeRunnable);
+                failSafeHandler.removeCallbacksAndMessages(null);
             }
         } catch (Exception ignore) {}
         failSafeRunnable = null;

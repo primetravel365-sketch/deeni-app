@@ -70,6 +70,7 @@
          سبب شائع جدًا وراء توقف تنبيهات الأذان في الخلفية على أجهزة كتير (شاومي/أوبو/هواوي وغيرها) حتى
          لو الجدولة نفسها مضبوطة صح بالكامل في الكود. -->
     <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
     <!-- إضافة (دفعة ٦٣): مطلوبة لتشغيل الخدمة الأمامية اللي بتشغّل الأذان الكامل (Android 9+ بشكل عام،
          وإلزامية بنوع "mediaPlayback" تحديدًا من Android 14/API 34 فصاعدًا). -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />

@@ -83,6 +83,33 @@ public class AzanSoundPlugin extends Plugin {
      * ثواني قليلة (السبب الحقيقي وراء توقف الأذان بعد "الله أكبر الله أكبر" بس).
      */
     @PluginMethod
+    public void schedulePrayerReminder(PluginCall call) {
+        String prayer = call.getString("key", "");
+        Integer hour = call.getInt("hour");
+        Integer minute = call.getInt("minute");
+        if (!prayer.matches("fajr|dhuhr|asr|maghrib|isha") || hour == null || minute == null
+                || hour < 0 || hour > 23 || minute < 0 || minute > 59) {
+            call.reject("Invalid prayer reminder");
+            return;
+        }
+        if (!AzanScheduler.canScheduleExactly(getContext())) {
+            call.reject("EXACT_ALARM_PERMISSION");
+            return;
+        }
+        Double lat = call.getDouble("latitude");
+        Double lon = call.getDouble("longitude");
+        if (lat != null && lon != null && Double.isFinite(lat) && Double.isFinite(lon)
+                && Math.abs(lat) <= 90 && Math.abs(lon) <= 180) {
+            AzanScheduler.persistLocation(getContext(), lat, lon, call.getInt("method", 16));
+        }
+        String key = "reminder_" + prayer;
+        AzanScheduler.setIqamaOffset(getContext(), key, -5);
+        AzanScheduler.schedule(getContext(), key, call.getString("name", prayer),
+                hour, minute, 0, "reminder", "notification");
+        call.resolve();
+    }
+
+    @PluginMethod
     public void scheduleFullAzan(PluginCall call) {
         try {
             String key = call.getString("key");

@@ -1,6 +1,7 @@
 package com.deeni.app;
 
 import android.app.AlarmManager;
+import androidx.activity.result.ActivityResult;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
@@ -12,6 +13,7 @@ import com.getcapacitor.Plugin;
 import com.getcapacitor.PluginCall;
 import com.getcapacitor.PluginMethod;
 import com.getcapacitor.annotation.CapacitorPlugin;
+import com.getcapacitor.annotation.ActivityCallback;
 
 /**
  * إضافة (دفعة ٣٠): سبب واقعي جدًا ومنتشر جدًا في تطبيقات الأذان تحديدًا (خصوصًا على أجهزة شاومي/أوبو/فيفو/هواوي
@@ -112,5 +114,38 @@ public class BatteryOptimPlugin extends Plugin {
                 call.reject("تعذّر فتح إعدادات التنبيهات الدقيقة", e2);
             }
         }
+    }
+    @PluginMethod
+    public void requestStartupBatteryAccess(PluginCall call) {
+        Intent intent = new Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS,
+                Uri.parse("package:" + getContext().getPackageName()));
+        openPermissionSetting(call, intent);
+    }
+
+    @PluginMethod
+    public void getOverlayStatus(PluginCall call) {
+        JSObject result = new JSObject();
+        result.put("allowed", Settings.canDrawOverlays(getContext()));
+        call.resolve(result);
+    }
+
+    @PluginMethod
+    public void requestOverlayAccess(PluginCall call) {
+        Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                Uri.parse("package:" + getContext().getPackageName()));
+        openPermissionSetting(call, intent);
+    }
+
+    private void openPermissionSetting(PluginCall call, Intent intent) {
+        try {
+            startActivityForResult(call, intent, "permissionSettingClosed");
+        } catch (Exception error) {
+            call.reject("تعذّر فتح إعدادات الإذن", error);
+        }
+    }
+
+    @ActivityCallback
+    private void permissionSettingClosed(PluginCall call, ActivityResult ignored) {
+        if (call != null) call.resolve();
     }
 }

@@ -85,3 +85,12 @@ assert.match(followupPlugin,/call\.getInt\("iqamaMinutes"\)/,
 console.log('Verified once-per-Fajr special phrase is gated after adhan and before iqama.');
 console.log('APK module and offline audio safety gates passed.');
 
+
+assert.match(html, /class="qibla-direction-marker"/, 'Qibla image is missing');
+assert.match(html, /class="qibla-verse-ticker"/, 'Qibla verse ticker is missing');
+assert.doesNotMatch(html, /isl-mosque-launch|overpass-api/, 'Removed nearby mosques feature is still active');
+assert.match(followupService, /startAdhan\(adhan\), 2000L/, 'Adhan must wait two seconds after its announcement');
+for (const prayer of ['fajr', 'dhuhr', 'asr', 'maghrib', 'isha']) {
+  assert.ok(fs.existsSync(path.join(audioDir, 'adhan_' + prayer + '_now.wav')),
+    'Missing local announcement for '+prayer);
+}
