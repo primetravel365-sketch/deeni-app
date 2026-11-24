@@ -91,7 +91,7 @@ public class AzanPlaybackService extends Service {
         int lead = AzanScheduler.announcementLeadMillis(activePrayerKey);
         Uri announcement = lead == 0 ? null : resolveUri("bundled", "adhan_" + activePrayerKey + "_now");
         long remaining = Math.max(0L, scheduledAtMillis - System.currentTimeMillis());
-        if (announcement == null || remaining < lead - 350L) {
+        if (announcement == null) {
             if (lead != 0 && remaining > 0L) {
                 failSafeHandler.postDelayed(() -> startAdhan(adhan), remaining);
             } else {
@@ -246,6 +246,7 @@ public class AzanPlaybackService extends Service {
         String title = prayerName != null ? ((activePrayerKey != null && activePrayerKey.startsWith("iqama_") ? "إقامة " : "أذان ") + prayerName + " 🕌") : "أذان 🕌";
         return new NotificationCompat.Builder(this, CHANNEL_ID)
                 .setContentTitle(title)
+                .setOnlyAlertOnce(true)
                 .setContentText("جاري تشغيل تنبيه الصلاة — اضغط إيقاف")
                 .setSmallIcon(getApplicationInfo().icon)
                 .setOngoing(true)

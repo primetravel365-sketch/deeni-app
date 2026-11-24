@@ -1,9 +1,5 @@
 package com.deeni.app;
 
-import android.app.Notification;
-import android.app.NotificationChannel;
-import android.app.NotificationManager;
-import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -26,7 +22,8 @@ public class AzanAlarmReceiver extends BroadcastReceiver {
 
         // Guard against duplicate delivery of the same prayer alarm.
         String alarmKey = intent.getStringExtra("key");
-        if (alarmKey == null || alarmKey.isEmpty()) return;
+        // Ignore pending text reminders created by older app versions.
+        if (alarmKey == null || alarmKey.isEmpty() || alarmKey.startsWith("reminder_")) return;
         long now = System.currentTimeMillis();
         long scheduled = intent.getLongExtra("scheduledAtMillis", 0L);
         if (scheduled > 0L && now >= scheduled && now - scheduled <= 30000L) {
@@ -36,11 +33,7 @@ public class AzanAlarmReceiver extends BroadcastReceiver {
             guard.edit().putLong(alarmKey, scheduled).commit();
 
             try {
-                if (alarmKey.startsWith("reminder_")) {
-                    showReminder(context, intent.getStringExtra("name"), alarmKey);
-                } else {
-                    startPrayerAudio(context, intent);
-                }
+                startPrayerAudio(context, intent);
             } catch (Exception ignore) {
                 // فشل بدء الخدمة (نادر) — لا داعي يعطّل إعادة جدولة الغد
             }
@@ -67,27 +60,4 @@ public class AzanAlarmReceiver extends BroadcastReceiver {
         }
     }
 
-    @SuppressWarnings("deprecation")
-    private void showReminder(Context context, String name, String key) {
-        NotificationManager manager = context.getSystemService(NotificationManager.class);
-        if (manager == null || !manager.areNotificationsEnabled()) return;
-        String channel = "islamiyat_prayer_reminders";
-        Notification.Builder builder;
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            manager.createNotificationChannel(new NotificationChannel(
-                    channel, "التنبيه قبل الصلاة", NotificationManager.IMPORTANCE_HIGH));
-            builder = new Notification.Builder(context, channel);
-        } else {
-            builder = new Notification.Builder(context).setDefaults(Notification.DEFAULT_ALL)
-                    .setPriority(Notification.PRIORITY_HIGH);
-        }
-        Intent launch = context.getPackageManager().getLaunchIntentForPackage(context.getPackageName());
-        if (launch != null) {
-            builder.setContentIntent(PendingIntent.getActivity(context, key.hashCode(), launch,
-                    PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE));
-        }
-        manager.notify(key, 0, builder.setSmallIcon(context.getApplicationInfo().icon)
-                .setContentTitle("اقترب أذان " + name).setContentText("باقي خمس دقائق")
-                .setAutoCancel(true).build());
-    }
 }

@@ -128,7 +128,7 @@ class AzanScheduler {
             SharedPreferences loc = context.getSharedPreferences(LOC_PREFS, Context.MODE_PRIVATE);
             boolean hasLocation = loc.contains("lat") && loc.contains("lon");
             for (String key : REQUEST_CODES.keySet()) {
-                if (!sp.getBoolean(key + "_set", false)) continue;
+                if (key.startsWith("reminder_") || !sp.getBoolean(key + "_set", false)) continue;
                 String name = sp.getString(key + "_name", key);
                 String soundType = sp.getString(key + "_soundType", null);
                 String source = sp.getString(key + "_source", null);

@@ -94,3 +94,8 @@ for (const prayer of ['fajr', 'dhuhr', 'asr', 'maghrib', 'isha']) {
   assert.ok(fs.existsSync(path.join(audioDir, 'adhan_' + prayer + '_now.wav')),
     'Missing local announcement for '+prayer);
 }
+
+assert.doesNotMatch(html, /schedulePrayerReminder\(alarm\)/, 'Standalone duplicate reminder still scheduled');
+assert.doesNotMatch(followupService, /remaining < lead/, 'Late alarm delivery must still play the spoken announcement');
+
+assert.match(html, /<dialog id="dua-library-dialog"/, 'Dua library sections must open inside a dialog');
