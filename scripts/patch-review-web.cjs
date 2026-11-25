@@ -126,4 +126,11 @@ html = html.replace('const alarm={key:p.key,name:p.name,',
   'const alarm={key:p.key,name:p.name,verifiedTime:realTimesLoaded,');
 html = html.replace(' if(!sound)await scheduleIqamaNotifications();',
   ' if(!sound&&!window.Capacitor?.isNativePlatform())await scheduleIqamaNotifications();');
+const usabilityTag = '<script defer src="islamiyat-location-language-review.js"></script>';
+if (!fs.existsSync('www/islamiyat-location-language-review.js')) {
+  throw new Error('Missing location and language review module');
+}
+const bodyEnd = html.toLowerCase().lastIndexOf('</body>');
+if (bodyEnd < 0) throw new Error('Missing app body');
+html = html.slice(0, bodyEnd) + usabilityTag + html.slice(bodyEnd);
 fs.writeFileSync(file, html, 'utf8');

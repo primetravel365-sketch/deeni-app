@@ -148,4 +148,24 @@ public class BatteryOptimPlugin extends Plugin {
     private void permissionSettingClosed(PluginCall call, ActivityResult ignored) {
         if (call != null) call.resolve();
     }
+
+    @PluginMethod
+    public void getLocationServiceStatus(PluginCall call) {
+        android.location.LocationManager location =
+                getContext().getSystemService(android.location.LocationManager.class);
+        boolean enabled = false;
+        if (location != null) {
+            enabled = Build.VERSION.SDK_INT >= 28 ? location.isLocationEnabled()
+                    : location.isProviderEnabled(android.location.LocationManager.GPS_PROVIDER)
+                      || location.isProviderEnabled(android.location.LocationManager.NETWORK_PROVIDER);
+        }
+        JSObject result = new JSObject();
+        result.put("enabled", enabled);
+        call.resolve(result);
+    }
+
+    @PluginMethod
+    public void openLocationServiceSettings(PluginCall call) {
+        openPermissionSetting(call, new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS));
+    }
 }
