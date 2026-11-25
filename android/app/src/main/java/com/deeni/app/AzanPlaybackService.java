@@ -91,7 +91,7 @@ public class AzanPlaybackService extends Service {
         int lead = AzanScheduler.announcementLeadMillis(activePrayerKey);
         Uri announcement = lead == 0 ? null : resolveUri("bundled", "adhan_" + activePrayerKey + "_now");
         long remaining = Math.max(0L, scheduledAtMillis - System.currentTimeMillis());
-        if (announcement == null || remaining < lead - 350L) {
+        if (announcement == null) {
             if (lead != 0 && remaining > 0L) {
                 failSafeHandler.postDelayed(() -> startAdhan(adhan), remaining);
             } else {
@@ -102,8 +102,7 @@ public class AzanPlaybackService extends Service {
         try {
             preparePlayer(announcement);
             mediaPlayer.setOnCompletionListener(player ->
-                    failSafeHandler.postDelayed(() -> startAdhan(adhan),
-                            Math.max(2000L, scheduledAtMillis - System.currentTimeMillis())));
+                    failSafeHandler.postDelayed(() -> startAdhan(adhan), 2000L));
             mediaPlayer.setOnErrorListener((player, what, extra) -> {
                 failSafeHandler.postDelayed(() -> startAdhan(adhan),
                         Math.max(0L, scheduledAtMillis - System.currentTimeMillis()));
