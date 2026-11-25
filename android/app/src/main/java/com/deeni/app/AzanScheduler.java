@@ -51,9 +51,22 @@ class AzanScheduler {
         } catch (Exception ignore) {}
     }
 
-    static void schedule(Context context, String key, String name, int hour, int minute, int second, String soundType, String source) {
+    static void schedule(Context context, String key, String name, int hour, int minute, int second, String soundType, String source, boolean verifiedTime) {
         Integer reqCode = REQUEST_CODES.get(key);
         if (reqCode == null) return;
+        if (verifiedTime) {
+            SharedPreferences loc = context.getSharedPreferences(LOC_PREFS, Context.MODE_PRIVATE);
+            if (loc.contains("lat") && loc.contains("lon")) {
+                int[] local = calculatePrayerHms(Calendar.getInstance(), key,
+                        loc.getFloat("lat", 0f), loc.getFloat("lon", 0f), loc.getInt("method", 16));
+                if (local != null) {
+                    int delta = ((hour - local[0]) * 3600 + (minute - local[1]) * 60
+                            + second - local[2] + 129600) % 86400 - 43200;
+                    context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit()
+                            .putInt(key + "_clock_adjustment", delta).apply();
+                }
+            }
+        }
         persist(context, key, name, hour, minute, second, soundType, source);
         armAlarm(context, reqCode, key, name, hour, minute, second, soundType, source);
     }
@@ -80,7 +93,7 @@ class AzanScheduler {
             // Check actual dates rather than reusing yesterday's clock time.
             // We intentionally do not arm a second copy of a just-fired alarm.
             for (int day = 0; day < 3; day++) {
-                int[] hms = calculatePrayerHms(date, key, lat, lon, method);
+                int[] hms = adjustedPrayerHms(context, date, key, lat, lon, method);
                 if (hms != null) {
                     Calendar trigger = (Calendar) date.clone();
                     trigger.set(Calendar.HOUR_OF_DAY, hms[0]);
@@ -142,7 +155,7 @@ class AzanScheduler {
                         int method = loc.getInt("method", 16);
                         double lat = loc.getFloat("lat", 0f);
                         double lon = loc.getFloat("lon", 0f);
-                        int[] hms = calculatePrayerHms(target, key, lat, lon, method);
+                        int[] hms = adjustedPrayerHms(context, target, key, lat, lon, method);
                         if (hms == null) throw new IllegalStateException("Invalid calculated prayer time");
                         Calendar trigger = (Calendar) target.clone();
                         trigger.set(Calendar.HOUR_OF_DAY, hms[0]);
@@ -152,7 +165,7 @@ class AzanScheduler {
                     applyAlarmOffset(context, key, trigger);
                         if (trigger.getTimeInMillis() <= System.currentTimeMillis()) {
                             target.add(Calendar.DAY_OF_YEAR, 1);
-                            hms = calculatePrayerHms(target, key, lat, lon, method);
+                            hms = adjustedPrayerHms(context, target, key, lat, lon, method);
                             if (hms == null) throw new IllegalStateException("Invalid calculated prayer time");
                         }
                         persist(context, key, name, hms[0], hms[1], hms[2], soundType, source);
@@ -177,6 +190,16 @@ class AzanScheduler {
                 }
             }
         } catch (Exception ignore) {}
+    }
+
+    private static int[] adjustedPrayerHms(Context context, Calendar date, String key,
+                                           double lat, double lon, int method) {
+        int[] local = calculatePrayerHms(date, key, lat, lon, method);
+        if (local == null) return null;
+        int delta = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+                .getInt(key + "_clock_adjustment", 0);
+        int seconds = (local[0] * 3600 + local[1] * 60 + local[2] + delta + 86400) % 86400;
+        return new int[]{seconds / 3600, seconds / 60 % 60, seconds % 60};
     }
 
     private static int[] calculatePrayerHms(Calendar date, String key,
@@ -300,6 +323,8 @@ class AzanScheduler {
             intent.putExtra("soundType", soundType);
             intent.putExtra("source", source);
             intent.putExtra("scheduledAtMillis", triggerAtMillis);
+            intent.putExtra("occurrenceMillis", triggerAtMillis - offset(context, key) * 60000L
+                    + announcementLeadMillis(key));
             intent.putExtra("prayerAtMillis", triggerAtMillis + announcementLeadMillis(key));
 
             int flags = PendingIntent.FLAG_UPDATE_CURRENT | (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S ? PendingIntent.FLAG_IMMUTABLE : 0);

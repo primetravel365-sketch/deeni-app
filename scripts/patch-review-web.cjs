@@ -119,4 +119,11 @@ html = html.replace('<head>', `<head><style>
 @keyframes dua-frame-glow{0%,100%{box-shadow:0 0 6px 1px #9c5d2e,inset 0 0 5px #c48b49}50%{box-shadow:0 0 19px 5px #f0b864,inset 0 0 10px #f0b864}}
 @media(prefers-reduced-motion:reduce){#dua-library-dialog{animation:none;box-shadow:0 0 10px #c48b49}}
 </style>`);
+// Keep the last valid native schedule while the live city timetable is loading.
+html = html.replace(' if(sound)await sound.cancelAllFullAzan();',
+  ' if(sound&&adhanNotificationsEnabled&&userCoords&&!realTimesLoaded)return;\n if(sound)await sound.cancelAllFullAzan();');
+html = html.replace('const alarm={key:p.key,name:p.name,',
+  'const alarm={key:p.key,name:p.name,verifiedTime:realTimesLoaded,');
+html = html.replace(' if(!sound)await scheduleIqamaNotifications();',
+  ' if(!sound&&!window.Capacitor?.isNativePlatform())await scheduleIqamaNotifications();');
 fs.writeFileSync(file, html, 'utf8');

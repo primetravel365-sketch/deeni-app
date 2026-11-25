@@ -152,7 +152,8 @@ public class AzanSoundPlugin extends Plugin {
                 }
                 AzanScheduler.setIqamaOffset(getContext(), key, offset);
             }
-            AzanScheduler.schedule(getContext(), key, name, hour, minute, second == null ? 0 : second, soundType, source);
+            AzanScheduler.schedule(getContext(), key, name, hour, minute, second == null ? 0 : second, soundType, source,
+                    Boolean.TRUE.equals(call.getBoolean("verifiedTime", false)));
             call.resolve();
         } catch (Exception e) {
             call.reject("failed to schedule full azan: " + e.getMessage());

@@ -29,8 +29,17 @@ public class AzanAlarmReceiver extends BroadcastReceiver {
         if (scheduled > 0L && now >= scheduled && now - scheduled <= 30000L) {
             SharedPreferences guard = context.getSharedPreferences("deeni_azan_receiver_guard_v1", Context.MODE_PRIVATE);
             long last = guard.getLong(alarmKey, 0L);
-            if (last == scheduled) return;
-            guard.edit().putLong(alarmKey, scheduled).commit();
+            long occurrence = intent.getLongExtra("occurrenceMillis", scheduled);
+            java.util.Calendar day = java.util.Calendar.getInstance();
+            day.setTimeInMillis(occurrence);
+            int dayKey = day.get(java.util.Calendar.YEAR) * 1000 + day.get(java.util.Calendar.DAY_OF_YEAR);
+            if (last == scheduled || guard.getInt(alarmKey + "_day", 0) == dayKey) {
+                AzanScheduler.rescheduleWithRecalculation(context, alarmKey,
+                        intent.getStringExtra("name"), intent.getStringExtra("soundType"),
+                        intent.getStringExtra("source"));
+                return;
+            }
+            guard.edit().putLong(alarmKey, scheduled).putInt(alarmKey + "_day", dayKey).commit();
 
             try {
                 startPrayerAudio(context, intent);
