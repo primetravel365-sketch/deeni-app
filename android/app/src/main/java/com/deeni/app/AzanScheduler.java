@@ -68,7 +68,18 @@ class AzanScheduler {
             }
         }
         persist(context, key, name, hour, minute, second, soundType, source);
-        armAlarm(context, reqCode, key, name, hour, minute, second, soundType, source);
+        Calendar trigger = Calendar.getInstance();
+        trigger.set(Calendar.HOUR_OF_DAY, hour);
+        trigger.set(Calendar.MINUTE, minute);
+        trigger.set(Calendar.SECOND, second);
+        trigger.set(Calendar.MILLISECOND, 0);
+        applyAlarmOffset(context, key, trigger);
+        if (trigger.getTimeInMillis() <= System.currentTimeMillis() + 1000L) {
+            rescheduleWithRecalculation(context, key, name, soundType, source);
+            return;
+        }
+        armAlarmAt(context, reqCode, key, name, hour, minute, second, soundType, source,
+                trigger.getTimeInMillis());
     }
 
     /**

@@ -133,4 +133,4 @@ if (!fs.existsSync('www/islamiyat-location-language-review.js')) {
 const bodyEnd = html.toLowerCase().lastIndexOf('</body>');
 if (bodyEnd < 0) throw new Error('Missing app body');
 html = html.slice(0, bodyEnd) + usabilityTag + html.slice(bodyEnd);
-fs.writeFileSync(file, html, 'utf8');
+fs.writeFileSync(file, require('./islamiyat-v1-web.cjs')(html), 'utf8');
