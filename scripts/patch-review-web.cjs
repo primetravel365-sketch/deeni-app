@@ -134,4 +134,5 @@ const bodyEnd = html.toLowerCase().lastIndexOf('</body>');
 if (bodyEnd < 0) throw new Error('Missing app body');
 html = html.slice(0, bodyEnd) + usabilityTag + html.slice(bodyEnd);
 const v1 = require('./islamiyat-v1-web.cjs')(html);
-fs.writeFileSync(file, require('./islamiyat-prime-web.cjs')(v1), 'utf8');
+const prime = require('./islamiyat-prime-web.cjs')(v1);
+fs.writeFileSync(file, require('./islamiyat-iqama-web.cjs')(prime), 'utf8');
