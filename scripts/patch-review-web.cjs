@@ -136,4 +136,14 @@ html = html.slice(0, bodyEnd) + usabilityTag + html.slice(bodyEnd);
 const v1 = require('./islamiyat-v1-web.cjs')(html);
 const prime = require('./islamiyat-prime-web.cjs')(v1);
 const iqama = require('./islamiyat-iqama-web.cjs')(prime);
-fs.writeFileSync(file, require('./islamiyat-signup-web.cjs')(iqama), 'utf8');
+// The public app is account-free. The admin dashboard is outside www.
+const accountPanel = /<section class="card" id="account-panel">[\s\S]*?<\/section>/;
+const accountScript = /<script>\s*\(\(\) => \{\s*const email = document\.getElementById\('account-email'\);[\s\S]*?<\/script>/;
+if (!accountPanel.test(iqama) || !accountScript.test(iqama)) {
+  throw new Error('Expected the public account markup and script');
+}
+const guest = iqama.replace(accountPanel, '').replace(accountScript, '');
+if (/id="account-|\/auth\/v1\/|islamiyat_redeem_prime/.test(guest)) {
+  throw new Error('A public account dependency remains in the bundle');
+}
+fs.writeFileSync(file, guest, 'utf8');
