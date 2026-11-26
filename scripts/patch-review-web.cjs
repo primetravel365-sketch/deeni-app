@@ -146,4 +146,23 @@ const guest = iqama.replace(accountPanel, '').replace(accountScript, '');
 if (/id="account-|\/auth\/v1\/|islamiyat_redeem_prime/.test(guest)) {
   throw new Error('A public account dependency remains in the bundle');
 }
-fs.writeFileSync(file, guest, 'utf8');
+// The green welcome overlay exists both inline and in the visual review module.
+function removeWelcomeOverlay(source) {
+  const start = source.indexOf("    const firstRunKey = 'islamiyat-greeting-review-2026-v1';");
+  const end = source.indexOf('    function activeScreen() {', start);
+  if (start < 0 || end < 0 || !source.slice(start, end).includes("welcome.id = 'isl-greeting26'")) {
+    throw new Error('Expected the green welcome overlay');
+  }
+  const withoutOverlay = source.slice(0, start) + source.slice(end);
+  const result = withoutOverlay
+    .replace(/    #isl-greeting26 \{[\s\S]*?(?=    \.isl-ui-dark-fix)/, '')
+    .replace(/^    @media[^\n]*#isl-greeting26[^\n]*\n/m, '')
+    .replace("#isl-greeting26,#isl-dialog", "#isl-dialog")
+    .replace(" && !document.getElementById('isl-greeting26')", "");
+  if (result.includes('isl-greeting26')) throw new Error('A green welcome reference remains');
+  return result;
+}
+const app = removeWelcomeOverlay(guest);
+const visualReview = removeWelcomeOverlay(fs.readFileSync(uiModule, 'utf8'));
+fs.writeFileSync(uiModule, visualReview, 'utf8');
+fs.writeFileSync(file, app, 'utf8');
