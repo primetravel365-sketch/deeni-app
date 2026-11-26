@@ -162,7 +162,14 @@ function removeWelcomeOverlay(source) {
   if (result.includes('isl-greeting26')) throw new Error('A green welcome reference remains');
   return result;
 }
-const app = removeWelcomeOverlay(guest);
+const radioCategory = /\{key:"mp3quran_radios",icon:"📻",title:"إذاعات وقراء",sub:"[^"]*"\},/;
+const navStyle = '<style id="bottom-tab-labels">.phone .tabbar .tab-label,.phone .tabbar #gateway-return-btn .tab-label{font-size:clamp(13px,3.8vw,17px);font-weight:900;line-height:1.25;overflow-wrap:anywhere}</style>';
+if (!radioCategory.test(guest) || !guest.includes('</body>')) {
+  throw new Error('Expected the Quran library radio card and app body');
+}
+const app = removeWelcomeOverlay(guest)
+  .replace(radioCategory, '')
+  .replace('</body>', navStyle + '</body>');
 const visualReview = removeWelcomeOverlay(fs.readFileSync(uiModule, 'utf8'));
 fs.writeFileSync(uiModule, visualReview, 'utf8');
 fs.writeFileSync(file, app, 'utf8');
