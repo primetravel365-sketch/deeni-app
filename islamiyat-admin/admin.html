@@ -17,6 +17,7 @@ body{background:#101c17;color:#f9efd5;font:16px system-ui;margin:0}main{max-widt
 <button type="button" id="logout">تسجيل الخروج</button>
 <form id="create">
 <h2>إنشاء كود</h2>
+<p>تبدأ هدية برايم المؤقتة عند تفعيل الكود من حساب المستخدم. أكواد الخصم محفوظة للربط عند إضافة الدفع.</p>
 <label>نوع العرض <select id="kind"><option value="days">استخدام مجاني مؤقت</option><option value="lifetime">استخدام مجاني دائم</option><option value="discount">خصم</option></select></label>
 <label id="amount-label"><span id="amount-title">عدد الأيام</span><input id="amount" type="number" min="1" max="3650" value="30" required></label>
 <label>الحد الأقصى للاستخدام <input id="limit" type="number" min="1" max="10000" value="1" required></label>
@@ -79,7 +80,14 @@ async function refresh(){
    try{await request('/rest/v1/islamiyat_offers?id=eq.'+row.id,'PATCH',{enabled:!row.enabled});await refresh();status('تم تحديث الكود.')}
    catch{status('تعذّر تحديث الكود.');toggle.disabled=false}
   };
-  entry.append(toggle);list.append(entry);
+  const copy=document.createElement('button');
+  copy.type='button';
+  copy.textContent='نسخ الكود';
+  copy.onclick=async()=>{
+   try{await navigator.clipboard.writeText(row.code);status('تم نسخ الكود.')}
+   catch{status('انسخ الكود الظاهر في القائمة.')}
+  };
+  entry.append(copy,toggle);list.append(entry);
  }
 }
 field('kind').onchange=()=>{
