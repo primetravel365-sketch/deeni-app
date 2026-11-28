@@ -175,4 +175,4 @@ fs.writeFileSync(uiModule, visualReview, 'utf8');
 const revisedApp = require('./islamiyat-mushaf-dua-web.cjs')(app);
 fs.mkdirSync('www/sounds', { recursive: true });
 fs.copyFileSync('android/app/src/main/res/raw/post_adhan_dua.m4a', 'www/sounds/post_adhan_dua.m4a');
-fs.writeFileSync(file, revisedApp, 'utf8');
+fs.writeFileSync(file, require('./islamiyat-ask-search-web.cjs')(revisedApp), 'utf8');
