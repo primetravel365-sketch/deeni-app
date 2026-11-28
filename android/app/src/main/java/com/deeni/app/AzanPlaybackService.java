@@ -130,7 +130,7 @@ public class AzanPlaybackService extends Service {
         try {
             preparePlayer(source);
             mediaPlayer.setOnCompletionListener(player -> {
-                if (!tryStartFajrFollowup(player)) stopSelfSafely();
+                if (!tryStartFajrFollowup(player)) startPostAdhanDua();
             });
             mediaPlayer.setOnErrorListener((player, what, extra) -> {
                 stopSelfSafely();
@@ -175,22 +175,49 @@ public class AzanPlaybackService extends Service {
                     .build());
             player.setDataSource(getApplicationContext(), Uri.parse(
                     "android.resource://" + getPackageName() + "/" + rawId));
-            player.setOnCompletionListener(mp -> stopSelfSafely());
+            player.setOnCompletionListener(mp -> startPostAdhanDua());
             player.setOnErrorListener((mp, what, extra) -> {
-                stopSelfSafely();
+                startPostAdhanDua();
                 return true;
             });
             player.prepare();
             if (System.currentTimeMillis() + player.getDuration() + 500L >= deadline
                     || !preferences.edit().putString("lastPlayedDay", date).commit()) {
-                stopSelfSafely();
+                startPostAdhanDua();
                 return true;
             }
             player.start();
             return true;
         } catch (Exception e) {
-            stopSelfSafely();
+            startPostAdhanDua();
             return true;
+        }
+    }
+
+    private void startPostAdhanDua() {
+        if (!"fajr".equals(activePrayerKey) && !"dhuhr".equals(activePrayerKey)
+                && !"asr".equals(activePrayerKey) && !"maghrib".equals(activePrayerKey)
+                && !"isha".equals(activePrayerKey)) {
+            stopSelfSafely();
+            return;
+        }
+        Uri dua = resolveUri("bundled", "post_adhan_dua");
+        if (dua == null) {
+            stopSelfSafely();
+            return;
+        }
+        try {
+            preparePlayer(dua);
+            mediaPlayer.setOnCompletionListener(player -> stopSelfSafely());
+            mediaPlayer.setOnErrorListener((player, what, extra) -> {
+                stopSelfSafely();
+                return true;
+            });
+            failSafeHandler.removeCallbacks(failSafeRunnable);
+            failSafeHandler.postDelayed(failSafeRunnable, mediaPlayer.getDuration() + 5000L);
+            mediaPlayer.start();
+        } catch (Exception error) {
+            stopSelfSafely();
         }
     }
 
@@ -299,3 +326,4 @@ public class AzanPlaybackService extends Service {
         super.onDestroy();
     }
 }
+
